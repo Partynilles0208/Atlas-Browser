@@ -1,4 +1,4 @@
-const ATLAS_API_BASE = "http://localhost:3000";
+const ATLAS_API_BASE = "https://atlas-server.onrender.com";
 
 // Screens
 const screens = {
@@ -127,7 +127,7 @@ document.getElementById("btn-run").onclick = () => {
 
 // Publish
 document.getElementById("btn-publish").onclick = async () => {
-  const name = prompt("Name für die Seite:");
+  const name = prompt("Name fÃ¼r die Seite:");
   if (!name) return;
 
   const payload = {
@@ -151,7 +151,7 @@ document.getElementById("btn-publish").onclick = async () => {
       return;
     }
 
-    alert("Veröffentlicht unter: " + data.url);
+    alert("VerÃ¶ffentlicht unter: " + data.url);
     navigate(data.url);
 
   } catch (err) {
@@ -193,4 +193,5 @@ async function loadAtlasSite(name) {
 }
 
 // Start
+
 navigate("atlas://home");

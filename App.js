@@ -1,4 +1,4 @@
-const ATLAS_API_BASE = "https://atlas-server1.onrender.com";
+const ATLAS_API_BASE = "https://atlas-browser-1.onrender.com";
 
 // Screens
 const screens = {
@@ -195,4 +195,5 @@ async function loadAtlasSite(name) {
 // Start
 
 navigate("atlas://home");
+
 

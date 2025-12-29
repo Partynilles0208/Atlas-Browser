@@ -8,9 +8,10 @@ app.use(express.json());
 
 // Beispielroute
 app.get("/", (req, res) => {
-  res.send("Atlas-Server läuft!");
+  res.send("Atlas-Server-2 läuft!");
 });
 
 app.listen(PORT, () => {
   console.log(`Server läuft auf Port ${PORT}`);
 });
+

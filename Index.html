@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Atlas Browser V2</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Topbar -->
+  <header id="topbar">
+    <div id="nav-buttons">
+      <button class="nav-btn" id="btn-back">←</button>
+      <button class="nav-btn" id="btn-forward">→</button>
+      <button class="nav-btn" id="btn-reload">⟳</button>
+    </div>
+    <div id="url-wrapper">
+      <input type="text" id="url-input" placeholder="atlas://home oder Web-Adresse" />
+      <button id="mic-button">🎤</button>
+    </div>
+  </header>
+
+  <!-- Screens -->
+  <main id="main">
+    <!-- HOME -->
+    <section id="home-screen" class="screen active">
+      <div id="home-center">
+        <div id="logo-circle"><span id="logo-text">A</span></div>
+        <div id="slogan">
+          <h1>Atlas</h1>
+          <p>Creat. Explore. Atlas.</p>
+        </div>
+        <div id="home-url-bar">
+          <input type="text" id="home-url-input" placeholder="URL oder atlas:// eingeben …" />
+          <button id="home-mic-button">🎤</button>
+        </div>
+        <div id="quick-access">
+          <button class="quick-tile" data-target="atlas://editor">
+            <div class="tile-icon">&lt;/&gt;</div>
+            <div class="tile-label">Atlas Editor</div>
+          </button>
+          <button class="quick-tile" data-target="atlas://store">
+            <div class="tile-icon">🛒</div>
+            <div class="tile-label">Atlas Store</div>
+          </button>
+          <button class="quick-tile" data-target="atlas://docs">
+            <div class="tile-icon">📄</div>
+            <div class="tile-label">Atlas Docs</div>
+          </button>
+          <button class="quick-tile" data-target="atlas://community">
+            <div class="tile-icon">🌐</div>
+            <div class="tile-label">Community</div>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- EDITOR -->
+    <section id="editor-screen" class="screen">
+      <header class="sub-topbar">
+        <div class="sub-title">Atlas Editor</div>
+        <div class="sub-actions">
+          <button id="btn-new-project" class="ghost-btn">Neues Projekt</button>
+          <button id="btn-save" class="primary-btn">Speichern</button>
+          <button id="btn-publish" class="primary-btn">Veröffentlichen</button>
+        </div>
+      </header>
+      <div id="editor-body">
+        <div id="editor-tabs">
+          <button class="editor-tab active" data-tab="html">HTML</button>
+          <button class="editor-tab" data-tab="css">CSS</button>
+          <button class="editor-tab" data-tab="js">JS</button>
+        </div>
+        <div id="editor-panels">
+          <textarea id="editor-html" class="editor-panel active" spellcheck="false">
+<!DOCTYPE html>
+<html>
+  <head><title>Atlas Seite</title></head>
+  <body>
+    <h1>Hallo Atlas</h1>
+    <p>Das ist eine Testseite.</p>
+  </body>
+</html>
+          </textarea>
+          <textarea id="editor-css" class="editor-panel" spellcheck="false">
+body {
+  font-family: system-ui, sans-serif;
+  background: #05070b;
+  color: #e4e9ff;
+  text-align: center;
+  padding-top: 3rem;
+}
+h1 {
+  color: #3d7cff;
+}
+          </textarea>
+          <textarea id="editor-js" class="editor-panel" spellcheck="false">
+// Schreibe hier dein JavaScript
+console.log("Atlas JS läuft.");
+          </textarea>
+        </div>
+        <div id="editor-preview-wrapper">
+          <div id="editor-preview-header">
+            <span>Live Preview</span>
+            <button id="btn-run" class="ghost-btn">Run</button>
+          </div>
+          <iframe id="editor-preview"></iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- STORE -->
+    <section id="store-screen" class="screen">
+      <header class="sub-topbar"><div class="sub-title">Atlas Store</div></header>
+      <div class="sub-body"><p class="placeholder">Hier kommt der Atlas Store hin.</p></div>
+    </section>
+
+    <!-- DOCS -->
+    <section id="docs-screen" class="screen">
+      <header class="sub-topbar"><div class="sub-title">Atlas Docs</div></header>
+      <div class="sub-body"><p class="placeholder">Dokumentationen und Beispiele.</p></div>
+    </section>
+
+    <!-- COMMUNITY -->
+    <section id="community-screen" class="screen">
+      <header class="sub-topbar"><div class="sub-title">Atlas Community</div></header>
+      <div class="sub-body"><p class="placeholder">Community-Projekte und Beiträge.</p></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="settings-screen" class="screen">
+      <header class="sub-topbar"><div class="sub-title">Atlas Settings</div></header>
+      <div class="sub-body"><p class="placeholder">Einstellungen und Themes.</p></div>
+    </section>
+
+    <!-- WEBVIEW -->
+    <section id="webview-screen" class="screen">
+      <div id="webview-placeholder">
+        <iframe id="webview-frame" style="flex:1;width:100%;border:none;border-radius:12px;background:white;"></iframe>
+        <code id="webview-url-display"></code>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

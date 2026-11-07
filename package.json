@@ -1,7 +1,7 @@
 {
-  "name": "atlas-server-2",
-  "version": "1.0.0",
-  "description": "API-Server für Atlas Browser",
+  "name": "atlas-browser",
+  "version": "2.0.0",
+  "description": "Atlas Browser - Creat. Explore. Atlas.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -10,5 +10,4 @@
     "cors": "^2.8.5",
     "express": "^4.18.2"
   }
-
 }

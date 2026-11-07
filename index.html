@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Atlas Browser</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-theme="dark">
+  <!-- TAB BAR -->
+  <div id="tab-bar">
+    <div id="tab-list">
+      <!-- Tabs werden dynamisch per JS eingefügt -->
+    </div>
+    <button id="btn-add-tab" title="Neuer Tab" class="tab-action-btn">+</button>
+  </div>
+
+  <!-- TOPBAR -->
+  <header id="topbar">
+    <div id="nav-buttons">
+      <button class="nav-btn" id="btn-back" title="Zurück (Alt+Links)">←</button>
+      <button class="nav-btn" id="btn-forward" title="Vorwärts (Alt+Rechts)">→</button>
+      <button class="nav-btn" id="btn-reload" title="Neu laden (F5 / Strg+R)">⟳</button>
+      <button class="nav-btn" id="btn-home" title="Startseite (atlas://home)">⌂</button>
+    </div>
+
+    <div id="url-wrapper">
+      <div id="url-protocol-badge">atlas://</div>
+      <input type="text" id="url-input" placeholder="atlas://home, Web-Adresse oder Suchbegriff..." spellcheck="false" autocomplete="off" />
+      <button id="btn-clear-url" title="Löschen" class="url-action-btn">✕</button>
+      <button id="mic-button" title="Sprachsuche aktivieren" class="url-action-btn">🎤</button>
+    </div>
+
+    <div id="topbar-actions">
+      <button class="nav-btn" id="btn-quick-editor" title="Atlas Editor öffnen">&lt;/&gt;</button>
+      <button class="nav-btn" id="btn-quick-store" title="Atlas Store">🛒</button>
+      <button class="nav-btn" id="btn-quick-settings" title="Einstellungen">⚙️</button>
+    </div>
+  </header>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div id="toast-container"></div>
+
+  <!-- SCREENS -->
+  <main id="main">
+
+    <!-- 1. HOME SCREEN -->
+    <section id="home-screen" class="screen active">
+      <div id="home-center">
+        <div id="logo-wrapper">
+          <div id="logo-glow"></div>
+          <div id="logo-circle">
+            <span id="logo-text">A</span>
+          </div>
+        </div>
+
+        <div id="home-greeting">
+          <div id="home-clock">12:00</div>
+          <h1 id="home-salute">Atlas Browser</h1>
+          <p id="home-subtext">Creat. Explore. Atlas.</p>
+        </div>
+
+        <!-- Search Bar with Engine selector -->
+        <div id="home-search-box">
+          <div id="home-engine-badge" title="Suchmaschine wechseln">🦆 DuckDuckGo</div>
+          <input type="text" id="home-url-input" placeholder="Suchbegriff, URL oder atlas:// eingeben..." spellcheck="false" />
+          <button id="home-mic-button" title="Sprachsuche">🎤</button>
+        </div>
+
+        <!-- Quick Access Tiles -->
+        <div id="quick-access">
+          <button class="quick-tile" data-target="atlas://editor">
+            <div class="tile-icon-box" style="--accent-tile: #3d7cff;">
+              <span class="tile-icon">&lt;/&gt;</span>
+            </div>
+            <div class="tile-info">
+              <div class="tile-label">Atlas Editor</div>
+              <div class="tile-desc">Webseiten erstellen & coden</div>
+            </div>
+          </button>
+
+          <button class="quick-tile" data-target="atlas://store">
+            <div class="tile-icon-box" style="--accent-tile: #10b981;">
+              <span class="tile-icon">🛒</span>
+            </div>
+            <div class="tile-info">
+              <div class="tile-label">Atlas Store</div>
+              <div class="tile-desc">Apps, Games & Tools</div>
+            </div>
+          </button>
+
+          <button class="quick-tile" data-target="atlas://community">
+            <div class="tile-icon-box" style="--accent-tile: #8b5cf6;">
+              <span class="tile-icon">🌐</span>
+            </div>
+            <div class="tile-info">
+              <div class="tile-label">Community Hub</div>
+              <div class="tile-desc">Entdecke geteilte Projekte</div>
+            </div>
+          </button>
+
+          <button class="quick-tile" data-target="atlas://docs">
+            <div class="tile-icon-box" style="--accent-tile: #f59e0b;">
+              <span class="tile-icon">📄</span>
+            </div>
+            <div class="tile-info">
+              <div class="tile-label">Atlas Docs</div>
+              <div class="tile-desc">Dokumentation & Guides</div>
+            </div>
+          </button>
+
+          <button class="quick-tile" data-target="atlas://site/snake">
+            <div class="tile-icon-box" style="--accent-tile: #06b6d4;">
+              <span class="tile-icon">🐍</span>
+            </div>
+            <div class="tile-info">
+              <div class="tile-label">Snake Arcade</div>
+              <div class="tile-desc">Mini-Game Demo</div>
+            </div>
+          </button>
+
+          <button class="quick-tile" data-target="atlas://settings">
+            <div class="tile-icon-box" style="--accent-tile: #ec4899;">
+              <span class="tile-icon">⚙️</span>
+            </div>
+            <div class="tile-info">
+              <div class="tile-label">Einstellungen</div>
+              <div class="tile-desc">Themes & Personalisierung</div>
+            </div>
+          </button>
+        </div>
+
+        <!-- Recent History / Bookmarks Row -->
+        <div id="home-recent-section">
+          <div class="section-heading">Kürzlich besucht</div>
+          <div id="recent-chips"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. EDITOR SCREEN -->
+    <section id="editor-screen" class="screen">
+      <header class="sub-topbar">
+        <div class="sub-left">
+          <div class="sub-title">&lt;/&gt; Atlas Editor</div>
+          <input type="text" id="project-title-input" value="Meine-Atlas-Seite" placeholder="Projektname..." />
+        </div>
+        <div class="sub-actions">
+          <select id="template-select" title="Code-Vorlage wählen">
+            <option value="">📂 Vorlage wählen...</option>
+            <option value="starter">Standard Vorlage</option>
+            <option value="card">Cyberpunk Karte</option>
+            <option value="counter">Interaktiver Zähler</option>
+            <option value="canvas">Canvas Zeichenbrett</option>
+            <option value="blank">Leere Seite</option>
+          </select>
+          <button id="btn-new-project" class="ghost-btn" title="Neu anfangen">Neu</button>
+          <button id="btn-save" class="ghost-btn" title="Lokal speichern (Strg+S)">💾 Speichern</button>
+          <button id="btn-export-html" class="ghost-btn" title="Als HTML herunterladen">Export .html</button>
+          <button id="btn-publish" class="primary-btn" title="Online veröffentlichen">🚀 Veröffentlichen</button>
+        </div>
+      </header>
+
+      <div id="editor-body">
+        <div id="editor-left-pane">
+          <div id="editor-tabs-bar">
+            <div id="editor-tabs">
+              <button class="editor-tab active" data-tab="html">HTML</button>
+              <button class="editor-tab" data-tab="css">CSS</button>
+              <button class="editor-tab" data-tab="js">JavaScript</button>
+            </div>
+            <div class="editor-pane-actions">
+              <button id="btn-format-code" class="ghost-btn-sm" title="Code formatieren / bereinigen">Format</button>
+            </div>
+          </div>
+
+          <div id="editor-panels">
+            <textarea id="editor-html" class="editor-panel active" spellcheck="false" placeholder="<!-- HTML hier schreiben -->"><!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Atlas Seite</title>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Hallo Atlas Explorer! 🚀</h1>
+      <p>Willkommen auf deiner eigenen Seite im Atlas Browser.</p>
+      <button id="click-me">Klick mich!</button>
+      <div id="output"></div>
+    </div>
+  </body>
+</html></textarea>
+
+            <textarea id="editor-css" class="editor-panel" spellcheck="false" placeholder="/* CSS hier schreiben */">body {
+  margin: 0;
+  padding: 2rem;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: radial-gradient(circle at 50% 0%, #172442, #05070b);
+  color: #e4e9ff;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.container {
+  background: rgba(14, 20, 36, 0.85);
+  border: 1px solid rgba(95, 211, 255, 0.25);
+  border-radius: 16px;
+  padding: 2.5rem;
+  max-width: 480px;
+  text-align: center;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+}
+
+h1 {
+  color: #5fd3ff;
+  margin-top: 0;
+}
+
+p {
+  color: #9aa3c6;
+  line-height: 1.5;
+}
+
+#click-me {
+  background: linear-gradient(135deg, #3d7cff, #5fd3ff);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.6rem;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  margin-top: 1rem;
+}
+
+#click-me:hover {
+  transform: scale(1.05);
+}
+
+#output {
+  margin-top: 1.2rem;
+  font-weight: 500;
+  color: #00ffaa;
+}</textarea>
+
+            <textarea id="editor-js" class="editor-panel" spellcheck="false" placeholder="// JavaScript hier schreiben">let count = 0;
+const btn = document.getElementById("click-me");
+const out = document.getElementById("output");
+
+btn.addEventListener("click", () => {
+  count++;
+  out.textContent = `Du hast ${count} Mal geklickt! 🎉`;
+});
+
+console.log("Atlas Script aktiv!");</textarea>
+          </div>
+        </div>
+
+        <div id="editor-right-pane">
+          <div id="editor-preview-wrapper">
+            <div id="editor-preview-header">
+              <div class="preview-title">
+                <span class="preview-dot"></span> Live Preview
+              </div>
+              <div class="preview-controls">
+                <button id="btn-run" class="primary-btn-sm" title="Vorschau aktualisieren (Strg+Enter)">▶ Run</button>
+                <button id="btn-fullscreen-preview" class="ghost-btn-sm" title="In WebView öffnen">↗ Vollbild</button>
+              </div>
+            </div>
+            <iframe id="editor-preview" sandbox="allow-scripts allow-modals allow-forms allow-same-origin"></iframe>
+            <div id="editor-console-box">
+              <div class="console-header">Konsole <button id="btn-clear-console">Clear</button></div>
+              <div id="editor-console-output"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. STORE SCREEN -->
+    <section id="store-screen" class="screen">
+      <header class="sub-topbar">
+        <div class="sub-title">🛒 Atlas App & Game Store</div>
+        <div class="store-search-bar">
+          <input type="text" id="store-search-input" placeholder="Apps oder Spiele suchen..." />
+        </div>
+      </header>
+
+      <div class="store-filter-bar">
+        <button class="store-filter-btn active" data-filter="all">Alle</button>
+        <button class="store-filter-btn" data-filter="games">Spiele</button>
+        <button class="store-filter-btn" data-filter="tools">Tools & Utilities</button>
+        <button class="store-filter-btn" data-filter="creative">Kreativ</button>
+      </div>
+
+      <div id="store-grid">
+        <!-- Apps werden dynamisch per JS eingefügt -->
+      </div>
+    </section>
+
+    <!-- 4. DOCS SCREEN -->
+    <section id="docs-screen" class="screen">
+      <header class="sub-topbar">
+        <div class="sub-title">📄 Atlas Dokumentation & Entwickler-Guide</div>
+      </header>
+      <div id="docs-layout">
+        <nav id="docs-sidebar">
+          <a href="#docs-intro" class="docs-nav-link active">1. Einführung</a>
+          <a href="#docs-protocol" class="docs-nav-link">2. atlas:// Protokoll</a>
+          <a href="#docs-editor" class="docs-nav-link">3. Atlas Editor</a>
+          <a href="#docs-api" class="docs-nav-link">4. Atlas REST API</a>
+          <a href="#docs-vercel" class="docs-nav-link">5. Vercel Hosting</a>
+        </nav>
+        <div id="docs-content">
+          <article id="docs-intro" class="docs-section">
+            <h2>1. Einführung in Atlas Browser</h2>
+            <p>Atlas Browser ist ein webbasierter Micro-Browser und Web-Betriebssystem. Er ermöglicht es dir, eigene Webseiten direkt im Browser zu coden, mit einem Klick zu publizieren und native <code>atlas://</code>-Adressen zu nutzen.</p>
+            <div class="doc-card">
+              <h3>⚡ Highlights</h3>
+              <ul>
+                <li><strong>Native Protokolle:</strong> Navigiere über <code>atlas://home</code>, <code>atlas://editor</code> oder eigene Seiten mit <code>atlas://site/&lt;name&gt;</code>.</li>
+                <li><strong>Echtzeit-Editor:</strong> HTML-, CSS- und JavaScript-Entwicklung mit sofortiger Live-Vorschau.</li>
+                <li><strong>Offline & Cloud:</strong> Seiten werden wahlweise über die API synchronisiert oder im lokalen Speicher gesichert.</li>
+                <li><strong>Vercel Ready:</strong> 100% optimiert für Vercel mit statischem SPA-Routing und Serverless Functions.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article id="docs-protocol" class="docs-section">
+            <h2>2. Das atlas:// Protokoll</h2>
+            <p>Atlas Browser besitzt ein eigenes URL-Schema für interne Funktionen und Seiten:</p>
+            <table class="docs-table">
+              <thead>
+                <tr>
+                  <th>URL</th>
+                  <th>Beschreibung</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>atlas://home</code></td>
+                  <td>Die Haupt-Startseite mit Suchleiste und Schnellzugriff</td>
+                </tr>
+                <tr>
+                  <td><code>atlas://editor</code></td>
+                  <td>Der Code-Editor für eigene HTML/CSS/JS Projekte</td>
+                </tr>
+                <tr>
+                  <td><code>atlas://store</code></td>
+                  <td>App- und Spiele-Katalog mit installierbaren Demos</td>
+                </tr>
+                <tr>
+                  <td><code>atlas://community</code></td>
+                  <td>Übersicht veröffentlichter Community-Seiten</td>
+                </tr>
+                <tr>
+                  <td><code>atlas://docs</code></td>
+                  <td>Diese Dokumentation</td>
+                </tr>
+                <tr>
+                  <td><code>atlas://settings</code></td>
+                  <td>Themes, Suchmaschine und Speicheroptionen</td>
+                </tr>
+                <tr>
+                  <td><code>atlas://site/:name</code></td>
+                  <td>Lädt eine gespeicherte Atlas-Seite (z. B. <code>atlas://site/snake</code>)</td>
+                </tr>
+              </tbody>
+            </table>
+          </article>
+
+          <article id="docs-editor" class="docs-section">
+            <h2>3. Seiten bauen im Atlas Editor</h2>
+            <p>Jede Atlas-Seite besteht aus drei Komponenten:</p>
+            <ul>
+              <li><strong>HTML:</strong> Die Dokumentstruktur und Inhalte.</li>
+              <li><strong>CSS:</strong> Design, Animationen und Layouts.</li>
+              <li><strong>JavaScript:</strong> Interaktion, Logik und Canvas-Rendering.</li>
+            </ul>
+            <div class="code-box">
+              <div class="code-box-header">Beispiel: Interaktive Schaltfläche</div>
+              <pre><code>// Im JS-Tab:
+document.getElementById("btn").addEventListener("click", () => {
+  alert("Hallo aus dem Atlas Browser!");
+});</code></pre>
+            </div>
+            <p>Mit der Taste <strong>▶ Run</strong> oder dem Shortcut <strong>Strg + Enter</strong> wird die Live-Vorschau neu gerendert.</p>
+          </article>
+
+          <article id="docs-api" class="docs-section">
+            <h2>4. Atlas REST API Referenz</h2>
+            <p>Die API erlaubt das programmatische Speichern und Abrufen von Seiten:</p>
+            <div class="api-endpoint">
+              <span class="badge post">POST</span> <code>/api/publish</code>
+              <p>Veröffentlicht eine neue Seite.</p>
+              <pre><code>{
+  "name": "meineseite",
+  "html": "&lt;h1&gt;Titel&lt;/h1&gt;",
+  "css": "body { color: cyan; }",
+  "js": "console.log('ready');",
+  "author": "DeinName"
+}</code></pre>
+            </div>
+
+            <div class="api-endpoint">
+              <span class="badge get">GET</span> <code>/api/site/:name</code>
+              <p>Gibt das JSON-Objekt der Seite zurück.</p>
+            </div>
+
+            <div class="api-endpoint">
+              <span class="badge get">GET</span> <code>/api/sites</code>
+              <p>Gibt alle registrierten Seiten als Liste zurück.</p>
+            </div>
+          </article>
+
+          <article id="docs-vercel" class="docs-section">
+            <h2>5. Vercel Deployment Guide</h2>
+            <p>So stellst du sicher, dass dein Vercel Deployment fehlerfrei läuft:</p>
+            <ul>
+              <li><strong>Kleinschreibung:</strong> Alle Kern-Dateien (<code>index.html</code>, <code>app.js</code>, <code>style.css</code>, <code>server.js</code>) müssen kleingeschrieben sein, da Linux-Server Dateinamen strikt case-sensitive behandeln.</li>
+              <li><strong>vercel.json:</strong> Stellt sicher, dass das SPA-Routing aktiviert ist und <code>/api/*</code> automatisch auf Serverless Functions geleitet wird.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. COMMUNITY SCREEN -->
+    <section id="community-screen" class="screen">
+      <header class="sub-topbar">
+        <div class="sub-title">🌐 Atlas Community Hub</div>
+        <div class="sub-actions">
+          <button id="btn-community-refresh" class="ghost-btn">⟳ Aktualisieren</button>
+          <button id="btn-community-create" class="primary-btn">➕ Eigene Seite bauen</button>
+        </div>
+      </header>
+      <div id="community-body">
+        <div class="community-banner">
+          <h3>Entdecke Projekte der Atlas Community</h3>
+          <p>Hier findest du alle von Nutzern erstellten Seiten. Klicke auf ein Projekt, um es direkt auszuführen oder den Quellcode im Editor anzusehen!</p>
+        </div>
+        <div id="community-grid">
+          <!-- Dynamisch per JS generiert -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. SETTINGS SCREEN -->
+    <section id="settings-screen" class="screen">
+      <header class="sub-topbar">
+        <div class="sub-title">⚙️ Atlas Einstellungen</div>
+      </header>
+      <div id="settings-body">
+        <div class="settings-group">
+          <h3>🎨 Design & Theme</h3>
+          <p class="settings-desc">Wähle das Farbschema für den gesamten Browser.</p>
+          <div class="theme-picker">
+            <button class="theme-btn active" data-theme="dark">
+              <span class="theme-swatch" style="background: #0d1322; border-color: #3d7cff;"></span>
+              Atlas Dark (Standard)
+            </button>
+            <button class="theme-btn" data-theme="neon">
+              <span class="theme-swatch" style="background: #14052b; border-color: #d946ef;"></span>
+              Cyberpunk Neon
+            </button>
+            <button class="theme-btn" data-theme="matrix">
+              <span class="theme-swatch" style="background: #020b05; border-color: #22c55e;"></span>
+              Matrix Terminal
+            </button>
+            <button class="theme-btn" data-theme="oled">
+              <span class="theme-swatch" style="background: #000000; border-color: #ffffff;"></span>
+              Midnight OLED
+            </button>
+            <button class="theme-btn" data-theme="light">
+              <span class="theme-swatch" style="background: #f1f5f9; border-color: #2563eb;"></span>
+              Clean Daylight
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h3>🔍 Standard-Suchmaschine</h3>
+          <p class="settings-desc">Wird verwendet, wenn du in die Adressleiste suchst.</p>
+          <select id="setting-search-engine" class="settings-select">
+            <option value="duckduckgo">DuckDuckGo (Datenschutzfreundlich)</option>
+            <option value="google">Google</option>
+            <option value="bing">Microsoft Bing</option>
+            <option value="ecosia">Ecosia (Bäume pflanzen)</option>
+          </select>
+        </div>
+
+        <div class="settings-group">
+          <h3>💾 Daten & Speicherverwaltung</h3>
+          <p class="settings-desc">Verwalte deinen lokalen Browser-Speicher und erstelle Backups deiner Seiten.</p>
+          <div class="settings-actions-row">
+            <button id="btn-export-all-sites" class="ghost-btn">📤 Alle Seiten exportieren (JSON)</button>
+            <button id="btn-import-sites-trigger" class="ghost-btn">📥 Seiten importieren</button>
+            <input type="file" id="import-sites-file" accept=".json" style="display:none;" />
+            <button id="btn-clear-history" class="ghost-btn">🗑️ Verlauf löschen</button>
+            <button id="btn-reset-atlas" class="ghost-btn danger">⚠️ Auf Werkseinstellungen zurücksetzen</button>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h3>ℹ️ Über Atlas Browser</h3>
+          <div class="about-card">
+            <p><strong>Atlas Browser V2.0</strong></p>
+            <p>Ein interaktiver Web-Browser und Web-App Simulator mit lokalem & Cloud-Storage.</p>
+            <p>Status: <span class="badge online">Vercel Ready</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. WEBVIEW SCREEN -->
+    <section id="webview-screen" class="screen">
+      <div id="webview-header-bar">
+        <span id="webview-url-display">https://...</span>
+        <div class="webview-actions">
+          <button id="btn-webview-reload" class="ghost-btn-sm" title="Seite neu laden">⟳</button>
+          <button id="btn-webview-copy" class="ghost-btn-sm" title="URL kopieren">📋 URL</button>
+          <button id="btn-webview-external" class="ghost-btn-sm" title="In neuem Browser-Fenster öffnen">↗ Extern öffnen</button>
+        </div>
+      </div>
+      <div id="webview-frame-container">
+        <iframe id="webview-frame" sandbox="allow-scripts allow-forms allow-popups allow-modals allow-same-origin"></iframe>
+        <div id="webview-blocked-notice" style="display: none;">
+          <div class="blocked-card">
+            <h3>🔒 Externe Website-Sicherheit</h3>
+            <p id="blocked-reason">Diese Webseite erlaubt möglicherweise keine Einbettung innerhalb von iFrames (X-Frame-Options Header).</p>
+            <button id="btn-blocked-open-external" class="primary-btn">In neuem Tab öffnen ↗</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

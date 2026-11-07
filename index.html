@@ -45,43 +45,81 @@
   <!-- SCREENS -->
   <main id="main">
 
-    <!-- 1. HOME SCREEN -->
+    <!-- 1. HOME SCREEN (BEAUTIFUL REDESIGN) -->
     <section id="home-screen" class="screen active">
+      <!-- Ambient Background Glow Spheres -->
+      <div class="ambient-orb orb-1"></div>
+      <div class="ambient-orb orb-2"></div>
+      <div class="ambient-orb orb-3"></div>
+
       <div id="home-center">
-        <div id="logo-wrapper">
-          <div id="logo-glow"></div>
-          <div id="logo-circle">
-            <span id="logo-text">A</span>
+        <!-- Glowing Atlas 3D Emblem -->
+        <div id="logo-container">
+          <div id="logo-orbit-ring"></div>
+          <div id="logo-glow-layer"></div>
+          <div id="logo-core">
+            <span id="logo-letter">A</span>
           </div>
         </div>
 
-        <div id="home-greeting">
+        <!-- Greeting & Live Time -->
+        <div id="home-hero">
           <div id="home-clock">12:00</div>
+          <div id="home-date">Samstag, 7. November</div>
           <h1 id="home-salute">Atlas Browser</h1>
-          <p id="home-subtext">Creat. Explore. Atlas.</p>
+          <p id="home-subtext">Dein kreativer Workspace für Code, Web & Apps</p>
         </div>
 
         <!-- Search Bar with Engine selector -->
-        <div id="home-search-box">
-          <div id="home-engine-badge" title="Suchmaschine wechseln">🦆 DuckDuckGo</div>
-          <input type="text" id="home-url-input" placeholder="Suchbegriff, URL oder atlas:// eingeben..." spellcheck="false" />
-          <button id="home-mic-button" title="Sprachsuche">🎤</button>
+        <div id="home-search-wrapper">
+          <button id="home-engine-badge" title="Suchmaschine wechseln">🦆 DuckDuckGo</button>
+          <input type="text" id="home-url-input" placeholder="Web-Adresse, atlas:// oder Begriff suchen..." spellcheck="false" autocomplete="off" />
+          <button id="home-mic-button" title="Sprachsuche aktivieren">🎤</button>
+          <span class="search-kbd-hint">⏎ Enter</span>
+        </div>
+
+        <!-- Web Favoriten / Shortcuts -->
+        <div id="home-favorites-row">
+          <button class="fav-chip" data-url="https://www.youtube.com">
+            <span class="fav-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">▶</span>
+            <span class="fav-name">YouTube</span>
+          </button>
+          <button class="fav-chip" data-url="https://github.com">
+            <span class="fav-icon" style="background: rgba(255, 255, 255, 0.1); color: #f8fafc;">🐙</span>
+            <span class="fav-name">GitHub</span>
+          </button>
+          <button class="fav-chip" data-url="https://de.wikipedia.org">
+            <span class="fav-icon" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">W</span>
+            <span class="fav-name">Wikipedia</span>
+          </button>
+          <button class="fav-chip" data-url="https://www.reddit.com">
+            <span class="fav-icon" style="background: rgba(249, 115, 22, 0.15); color: #f97316;">💬</span>
+            <span class="fav-name">Reddit</span>
+          </button>
+          <button class="fav-chip" data-url="https://chatgpt.com">
+            <span class="fav-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">🤖</span>
+            <span class="fav-name">ChatGPT</span>
+          </button>
+          <button class="fav-chip" id="btn-custom-bookmark" title="Eigenen Favoriten hinzufügen">
+            <span class="fav-icon add-btn">+</span>
+            <span class="fav-name">Neu</span>
+          </button>
         </div>
 
         <!-- Quick Access Tiles -->
         <div id="quick-access">
           <button class="quick-tile" data-target="atlas://editor">
-            <div class="tile-icon-box" style="--accent-tile: #3d7cff;">
+            <div class="tile-icon-box tile-blue">
               <span class="tile-icon">&lt;/&gt;</span>
             </div>
             <div class="tile-info">
               <div class="tile-label">Atlas Editor</div>
-              <div class="tile-desc">Webseiten erstellen & coden</div>
+              <div class="tile-desc">HTML/CSS/JS coden & testen</div>
             </div>
           </button>
 
           <button class="quick-tile" data-target="atlas://store">
-            <div class="tile-icon-box" style="--accent-tile: #10b981;">
+            <div class="tile-icon-box tile-green">
               <span class="tile-icon">🛒</span>
             </div>
             <div class="tile-info">
@@ -91,37 +129,37 @@
           </button>
 
           <button class="quick-tile" data-target="atlas://community">
-            <div class="tile-icon-box" style="--accent-tile: #8b5cf6;">
+            <div class="tile-icon-box tile-purple">
               <span class="tile-icon">🌐</span>
             </div>
             <div class="tile-info">
               <div class="tile-label">Community Hub</div>
-              <div class="tile-desc">Entdecke geteilte Projekte</div>
+              <div class="tile-desc">Entdecke geteilte Seiten</div>
             </div>
           </button>
 
           <button class="quick-tile" data-target="atlas://docs">
-            <div class="tile-icon-box" style="--accent-tile: #f59e0b;">
+            <div class="tile-icon-box tile-amber">
               <span class="tile-icon">📄</span>
             </div>
             <div class="tile-info">
               <div class="tile-label">Atlas Docs</div>
-              <div class="tile-desc">Dokumentation & Guides</div>
+              <div class="tile-desc">Guides, API & Protokoll</div>
             </div>
           </button>
 
           <button class="quick-tile" data-target="atlas://site/snake">
-            <div class="tile-icon-box" style="--accent-tile: #06b6d4;">
+            <div class="tile-icon-box tile-cyan">
               <span class="tile-icon">🐍</span>
             </div>
             <div class="tile-info">
               <div class="tile-label">Snake Arcade</div>
-              <div class="tile-desc">Mini-Game Demo</div>
+              <div class="tile-desc">Retro Mini-Game Demo</div>
             </div>
           </button>
 
           <button class="quick-tile" data-target="atlas://settings">
-            <div class="tile-icon-box" style="--accent-tile: #ec4899;">
+            <div class="tile-icon-box tile-rose">
               <span class="tile-icon">⚙️</span>
             </div>
             <div class="tile-info">
@@ -131,10 +169,17 @@
           </button>
         </div>
 
-        <!-- Recent History / Bookmarks Row -->
+        <!-- Recent History Section -->
         <div id="home-recent-section">
           <div class="section-heading">Kürzlich besucht</div>
           <div id="recent-chips"></div>
+        </div>
+
+        <!-- Bottom System Status Bar -->
+        <div id="home-status-dock">
+          <div class="dock-badge"><span class="dock-dot dot-green"></span> Vercel Cloud Online</div>
+          <div class="dock-badge"><span class="dock-dot dot-blue"></span> Offline Sync Bereit</div>
+          <div class="dock-tip">💡 Tipp: Drücke <code>Strg+Enter</code> im Editor für Live-Preview</div>
         </div>
       </div>
     </section>
@@ -517,7 +562,7 @@ document.getElementById("btn").addEventListener("click", () => {
       </div>
     </section>
 
-    <!-- 7. WEBVIEW SCREEN -->
+    <!-- 7. WEBVIEW SCREEN (FIXED SPECIFICITY & HIDDEN BY DEFAULT) -->
     <section id="webview-screen" class="screen">
       <div id="webview-header-bar">
         <span id="webview-url-display">https://...</span>

@@ -169,6 +169,12 @@ function updateClock() {
   const clockEl = document.getElementById("home-clock");
   if (clockEl) clockEl.textContent = `${hours}:${minutes}`;
 
+  const dateEl = document.getElementById("home-date");
+  if (dateEl) {
+    const options = { weekday: "long", day: "numeric", month: "long" };
+    dateEl.textContent = now.toLocaleDateString("de-DE", options);
+  }
+
   const saluteEl = document.getElementById("home-salute");
   if (saluteEl) {
     if (hours < 12) saluteEl.textContent = "Guten Morgen, Explorer";
@@ -178,6 +184,32 @@ function updateClock() {
 }
 setInterval(updateClock, 1000);
 updateClock();
+
+// Favoriten Buttons Handlers
+document.querySelectorAll(".fav-chip[data-url]").forEach(chip => {
+  chip.onclick = () => navigate(chip.dataset.url);
+});
+
+const btnCustomBookmark = document.getElementById("btn-custom-bookmark");
+if (btnCustomBookmark) {
+  btnCustomBookmark.onclick = () => {
+    const name = prompt("Name des Favoriten (z. B. Twitch):");
+    if (!name) return;
+    let url = prompt("Adresse (z. B. twitch.tv oder https://...):");
+    if (!url) return;
+    if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("atlas://")) {
+      url = "https://" + url;
+    }
+    const container = document.getElementById("home-favorites-row");
+    const chip = document.createElement("button");
+    chip.className = "fav-chip";
+    chip.setAttribute("data-url", url);
+    chip.innerHTML = `<span class="fav-icon" style="background:rgba(61,124,255,0.2);color:#5fd3ff;">★</span><span class="fav-name">${name}</span>`;
+    chip.onclick = () => navigate(url);
+    container.insertBefore(chip, btnCustomBookmark);
+    showToast(`Favorit "${name}" hinzugefügt!`, "success");
+  };
+}
 
 // ==================== TAB MANAGEMENT ====================
 function createTab(initialUrl = "atlas://home") {

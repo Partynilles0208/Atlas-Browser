@@ -1,8 +1,8 @@
-// ==========================================
-// ATLAS BROWSER V2 - CORE JAVASCRIPT ENGINE
-// ==========================================
+// =======================================================
+// ATLAS BROWSER - COMPLETE CHROME & OPERA ARCHITECTURE
+// =======================================================
 
-// API Base URL Detection (Vercel, Localhost, or Fallback)
+// Base API
 const ATLAS_API_BASE = (() => {
   const host = window.location.hostname;
   if (host.includes("vercel.app") || host === "localhost" || host === "127.0.0.1") {
@@ -11,25 +11,43 @@ const ATLAS_API_BASE = (() => {
   return "https://atlas-browser-2.onrender.com";
 })();
 
-// ==================== STATE & TABS ====================
+// ==================== STATE MANAGEMENT ====================
 let tabs = [];
 let activeTabId = null;
+let zoomLevel = 100;
 
 let settings = {
   theme: localStorage.getItem("atlas_theme") || "dark",
-  searchEngine: localStorage.getItem("atlas_search_engine") || "duckduckgo",
-  recentVisits: JSON.parse(localStorage.getItem("atlas_recent_visits") || "[]")
+  searchEngine: localStorage.getItem("atlas_search_engine") || "google",
+  bookmarks: JSON.parse(localStorage.getItem("atlas_bookmarks") || "[]"),
+  history: JSON.parse(localStorage.getItem("atlas_history") || "[]"),
+  speedDial: JSON.parse(localStorage.getItem("atlas_speed_dial") || "null")
 };
 
-// Search engine URL mappings
+// Default Speed Dial items if empty
+if (!settings.speedDial || settings.speedDial.length === 0) {
+  settings.speedDial = [
+    { title: "Google", url: "https://www.google.com", icon: "🔍", color: "#4285F4" },
+    { title: "YouTube", url: "https://www.youtube.com", icon: "▶", color: "#FF0000" },
+    { title: "GitHub", url: "https://github.com", icon: "🐙", color: "#24292E" },
+    { title: "Wikipedia", url: "https://de.wikipedia.org", icon: "W", color: "#636466" },
+    { title: "Reddit", url: "https://www.reddit.com", icon: "💬", color: "#FF4500" },
+    { title: "ChatGPT", url: "https://chatgpt.com", icon: "🤖", color: "#10A37F" },
+    { title: "Twitch", url: "https://www.twitch.tv", icon: "🎮", color: "#9146FF" },
+    { title: "Atlas Store", url: "atlas://store", icon: "🛒", color: "#10B981" }
+  ];
+  localStorage.setItem("atlas_speed_dial", JSON.stringify(settings.speedDial));
+}
+
+// Search engines
 const SEARCH_ENGINES = {
-  duckduckgo: { name: "🦆 DuckDuckGo", url: "https://duckduckgo.com/?q=" },
   google: { name: "🔍 Google", url: "https://www.google.com/search?q=" },
+  duckduckgo: { name: "🦆 DuckDuckGo", url: "https://duckduckgo.com/?q=" },
   bing: { name: "🟦 Bing", url: "https://www.bing.com/search?q=" },
   ecosia: { name: "🌳 Ecosia", url: "https://www.ecosia.org/search?q=" }
 };
 
-// Built-in Apps & Templates for Store & Editor
+// Built-in Apps & Demos
 const BUILTIN_APPS = [
   {
     id: "snake",
@@ -63,49 +81,8 @@ const BUILTIN_APPS = [
     html: `<div class="calc"><div id="display">0</div><div class="keys"><button class="op" onclick="c()">C</button><button class="op" onclick="a('/')">/</button><button class="op" onclick="a('*')">*</button><button class="op" onclick="d()">⌫</button><button onclick="a('7')">7</button><button onclick="a('8')">8</button><button onclick="a('9')">9</button><button class="op" onclick="a('-')">-</button><button onclick="a('4')">4</button><button onclick="a('5')">5</button><button onclick="a('6')">6</button><button class="op" onclick="a('+')">+</button><button onclick="a('1')">1</button><button onclick="a('2')">2</button><button onclick="a('3')">3</button><button class="eq" onclick="e()">=</button><button class="zero" onclick="a('0')">0</button><button onclick="a('.')">.</button></div></div>`,
     css: `body{margin:0;background:#05070b;display:flex;justify-content:center;align-items:center;min-height:100vh;font-family:sans-serif}.calc{background:#0e1424;border:1px solid #263353;border-radius:18px;padding:1.5rem;box-shadow:0 15px 35px rgba(0,0,0,0.6);width:260px}#display{background:#060810;color:#5fd3ff;font-size:2rem;text-align:right;padding:1rem;border-radius:10px;margin-bottom:1rem;overflow:hidden}.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}button{background:#162038;color:#fff;border:none;padding:14px;border-radius:10px;font-size:1.1rem;cursor:pointer;transition:background 0.15s}button:hover{background:#233257}.op{background:#2b3c66;color:#5fd3ff}.eq{background:#3d7cff;grid-row:span 2;height:100%}.zero{grid-column:span 2}`,
     js: `const disp=document.getElementById("display");function a(v){if(disp.textContent==='0'&&v!=='.')disp.textContent=v;else disp.textContent+=v;}function c(){disp.textContent='0';}function d(){disp.textContent=disp.textContent.slice(0,-1)||'0';}function e(){try{disp.textContent=eval(disp.textContent.replace(/[^0-9+\\-*./]/g,''));}catch(err){disp.textContent='Error';}}`
-  },
-  {
-    id: "matrix",
-    title: "Matrix Digital Rain",
-    category: "creative",
-    icon: "🌧️",
-    tag: "Visual",
-    desc: "Der legendäre digitale Regen aus grünen Glyphen im Terminal-Stil.",
-    html: `<canvas id="matrix"></canvas>`,
-    css: `body{margin:0;overflow:hidden;background:#000}canvas{display:block}`,
-    js: `const c=document.getElementById("matrix"),ctx=c.getContext("2d");c.width=window.innerWidth;c.height=window.innerHeight;const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*+-/<>~";const fontSize=16,cols=c.width/fontSize,drops=Array(Math.floor(cols)).fill(1);function draw(){ctx.fillStyle="rgba(0,0,0,0.05)";ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle="#00ff66";ctx.font=fontSize+"px monospace";for(let i=0;i<drops.length;i++){const text=chars.charAt(Math.floor(Math.random()*chars.length));ctx.fillText(text,i*fontSize,drops[i]*fontSize);if(drops[i]*fontSize>c.height&&Math.random()>0.975)drops[i]=0;drops[i]++;}}setInterval(draw,33);`
-  },
-  {
-    id: "pomodoro",
-    title: "Pomodoro Focus Timer",
-    category: "tools",
-    icon: "⏱️",
-    tag: "Tool",
-    desc: "Produktivitäts-Timer mit Arbeits- und Pausen-Intervallen.",
-    html: `<div class="pomo"><h2>Focus Timer</h2><div id="time">25:00</div><div class="btns"><button onclick="start()">Start</button><button onclick="pause()">Pause</button><button onclick="reset()">Reset</button></div></div>`,
-    css: `body{margin:0;background:#0b0d17;color:#fff;display:flex;justify-content:center;align-items:center;min-height:100vh;font-family:sans-serif}.pomo{background:#13182c;padding:2.5rem;border-radius:20px;border:1px solid #3d7cff;text-align:center}#time{font-size:4rem;font-weight:700;color:#5fd3ff;margin:1rem 0}.btns{display:flex;gap:10px;justify-content:center}button{background:#3d7cff;border:none;color:#fff;padding:10px 20px;border-radius:30px;cursor:pointer;font-weight:bold}`,
-    js: `let t=1500,timer=null;function update(){const m=Math.floor(t/60).toString().padStart(2,'0'),s=(t%60).toString().padStart(2,'0');document.getElementById("time").textContent=m+':'+s;}function start(){if(!timer)timer=setInterval(()=>{if(t>0){t--;update();}else{clearInterval(timer);timer=null;alert("Zeit abgelaufen!");}},1000);}function pause(){clearInterval(timer);timer=null;}function reset(){pause();t=1500;update();}`
   }
 ];
-
-// Pre-populate built-in apps into LocalStorage site cache if not exists
-function syncBuiltinsToLocalCache() {
-  BUILTIN_APPS.forEach(app => {
-    const key = "atlas_site_" + app.id;
-    if (!localStorage.getItem(key)) {
-      localStorage.setItem(key, JSON.stringify({
-        name: app.id,
-        title: app.title,
-        html: app.html,
-        css: app.css,
-        js: app.js,
-        author: "Atlas Built-In",
-        date: new Date().toISOString()
-      }));
-    }
-  });
-}
-syncBuiltinsToLocalCache();
 
 // ==================== SCREENS & DOM ELEMENTS ====================
 const screens = {
@@ -124,14 +101,14 @@ const btnForward = document.getElementById("btn-forward");
 const btnReload = document.getElementById("btn-reload");
 const btnHome = document.getElementById("btn-home");
 const btnClearUrl = document.getElementById("btn-clear-url");
+const btnBookmarkPage = document.getElementById("btn-bookmark-page");
 const micButton = document.getElementById("mic-button");
 const homeMicButton = document.getElementById("home-mic-button");
-
-// Tab bar
 const tabList = document.getElementById("tab-list");
 const btnAddTab = document.getElementById("btn-add-tab");
+const suggestionsBox = document.getElementById("omnibox-suggestions");
 
-// ==================== TOAST NOTIFICATIONS ====================
+// ==================== TOAST HELPER ====================
 function showToast(message, type = "info") {
   const container = document.getElementById("toast-container");
   const toast = document.createElement("div");
@@ -156,12 +133,11 @@ function applyTheme(themeName) {
 }
 applyTheme(settings.theme);
 
-// Theme buttons in settings
 document.querySelectorAll(".theme-btn").forEach(btn => {
   btn.onclick = () => applyTheme(btn.dataset.theme);
 });
 
-// ==================== CLOCK & GREETING ====================
+// ==================== CLOCK & DATE ====================
 function updateClock() {
   const now = new Date();
   const hours = now.getHours().toString().padStart(2, "0");
@@ -185,38 +161,13 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// Favoriten Buttons Handlers
-document.querySelectorAll(".fav-chip[data-url]").forEach(chip => {
-  chip.onclick = () => navigate(chip.dataset.url);
-});
-
-const btnCustomBookmark = document.getElementById("btn-custom-bookmark");
-if (btnCustomBookmark) {
-  btnCustomBookmark.onclick = () => {
-    const name = prompt("Name des Favoriten (z. B. Twitch):");
-    if (!name) return;
-    let url = prompt("Adresse (z. B. twitch.tv oder https://...):");
-    if (!url) return;
-    if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("atlas://")) {
-      url = "https://" + url;
-    }
-    const container = document.getElementById("home-favorites-row");
-    const chip = document.createElement("button");
-    chip.className = "fav-chip";
-    chip.setAttribute("data-url", url);
-    chip.innerHTML = `<span class="fav-icon" style="background:rgba(61,124,255,0.2);color:#5fd3ff;">★</span><span class="fav-name">${name}</span>`;
-    chip.onclick = () => navigate(url);
-    container.insertBefore(chip, btnCustomBookmark);
-    showToast(`Favorit "${name}" hinzugefügt!`, "success");
-  };
-}
-
-// ==================== TAB MANAGEMENT ====================
+// ==================== TAB MANAGEMENT (CHROME ARCHITECTURE) ====================
 function createTab(initialUrl = "atlas://home") {
   const tabId = "tab_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
   const newTab = {
     id: tabId,
     title: getTitleForUrl(initialUrl),
+    icon: getIconForUrl(initialUrl),
     url: initialUrl,
     historyStack: [initialUrl],
     historyIndex: 0
@@ -239,10 +190,10 @@ function activateTab(tabId) {
 function closeTab(tabId, event) {
   if (event) event.stopPropagation();
   if (tabs.length <= 1) {
-    // If only one tab left, reset to home
     const tab = tabs[0];
     tab.url = "atlas://home";
     tab.title = "Startseite";
+    tab.icon = "🏠";
     tab.historyStack = ["atlas://home"];
     tab.historyIndex = 0;
     renderTabs();
@@ -268,6 +219,10 @@ function renderTabs() {
     tabEl.className = `tab-item ${tab.id === activeTabId ? "active" : ""}`;
     tabEl.onclick = () => activateTab(tab.id);
 
+    const iconEl = document.createElement("span");
+    iconEl.className = "tab-favicon";
+    iconEl.textContent = tab.icon || "🌐";
+
     const titleEl = document.createElement("span");
     titleEl.className = "tab-title";
     titleEl.textContent = tab.title || "Atlas";
@@ -275,9 +230,10 @@ function renderTabs() {
     const closeBtn = document.createElement("button");
     closeBtn.className = "tab-close-btn";
     closeBtn.textContent = "×";
-    closeBtn.title = "Tab schließen";
+    closeBtn.title = "Tab schließen (Strg+W)";
     closeBtn.onclick = (e) => closeTab(tab.id, e);
 
+    tabEl.appendChild(iconEl);
     tabEl.appendChild(titleEl);
     tabEl.appendChild(closeBtn);
     tabList.appendChild(tabEl);
@@ -292,68 +248,59 @@ function getTitleForUrl(url) {
   if (url === "atlas://community") return "Community";
   if (url === "atlas://settings") return "Einstellungen";
   if (url.startsWith("atlas://site/")) {
-    const name = url.replace("atlas://site/", "");
-    return "Site: " + name;
+    return "Site: " + url.replace("atlas://site/", "");
   }
-  return url.replace(/^https?:\/\//, "").slice(0, 20);
+  return url.replace(/^https?:\/\//, "").slice(0, 18);
+}
+
+function getIconForUrl(url) {
+  if (url === "atlas://home") return "🏠";
+  if (url === "atlas://editor") return "</>";
+  if (url === "atlas://store") return "🛒";
+  if (url === "atlas://docs") return "📄";
+  if (url === "atlas://community") return "🌐";
+  if (url === "atlas://settings") return "⚙️";
+  if (url.includes("google")) return "🔍";
+  if (url.includes("youtube")) return "▶";
+  if (url.includes("github")) return "🐙";
+  if (url.includes("wikipedia")) return "W";
+  if (url.includes("reddit")) return "💬";
+  return "🌐";
 }
 
 btnAddTab.onclick = () => createTab("atlas://home");
 
-// ==================== NAVIGATION ENGINE ====================
 function getActiveTab() {
   return tabs.find(t => t.id === activeTabId);
 }
 
+// ==================== SCREEN SWITCHER ====================
 function showScreen(name) {
   Object.values(screens).forEach(s => s.classList.remove("active"));
   if (screens[name]) {
     screens[name].classList.add("active");
   }
-}
 
-function recordRecentVisit(url) {
-  if (url.startsWith("atlas://site/") || url.startsWith("http")) {
-    let list = settings.recentVisits.filter(u => u !== url);
-    list.unshift(url);
-    if (list.length > 8) list = list.slice(0, 8);
-    settings.recentVisits = list;
-    localStorage.setItem("atlas_recent_visits", JSON.stringify(list));
-    renderRecentVisits();
-  }
-}
-
-function renderRecentVisits() {
-  const container = document.getElementById("recent-chips");
-  if (!container) return;
-  container.innerHTML = "";
-  if (!settings.recentVisits || settings.recentVisits.length === 0) {
-    container.innerHTML = `<span style="color:var(--text-muted);font-size:0.8rem;">Noch keine Seiten besucht.</span>`;
-    return;
-  }
-
-  settings.recentVisits.forEach(url => {
-    const chip = document.createElement("button");
-    chip.className = "recent-chip";
-    chip.innerHTML = `<span>🔗</span> <span>${url.replace(/^https?:\/\//, "")}</span>`;
-    chip.onclick = () => navigate(url);
-    container.appendChild(chip);
+  // Update Opera Sidebar active state
+  document.querySelectorAll(".sidebar-btn[data-nav]").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.nav === "atlas://" + name);
   });
 }
-renderRecentVisits();
 
+// ==================== NAVIGATION ENGINE ====================
 function navigate(targetUrl, push = true) {
   if (!targetUrl) return;
   let url = targetUrl.trim();
 
-  // Smart URL parser
+  // Hide suggestions
+  if (suggestionsBox) suggestionsBox.style.display = "none";
+
+  // Smart URL parser (Google / Web / Atlas)
   if (!url.startsWith("atlas://") && !url.startsWith("http://") && !url.startsWith("https://")) {
-    // Check if it's a domain name (contains . and no spaces)
     if (!url.includes(" ") && url.includes(".") && !url.startsWith("?")) {
       url = "https://" + url;
     } else {
-      // Search Query
-      const engine = SEARCH_ENGINES[settings.searchEngine] || SEARCH_ENGINES.duckduckgo;
+      const engine = SEARCH_ENGINES[settings.searchEngine] || SEARCH_ENGINES.google;
       url = engine.url + encodeURIComponent(url);
     }
   }
@@ -362,6 +309,7 @@ function navigate(targetUrl, push = true) {
   if (tab) {
     tab.url = url;
     tab.title = getTitleForUrl(url);
+    tab.icon = getIconForUrl(url);
 
     if (push) {
       tab.historyStack = tab.historyStack.slice(0, tab.historyIndex + 1);
@@ -373,42 +321,57 @@ function navigate(targetUrl, push = true) {
   renderTabs();
   urlInput.value = url;
   updateNavButtons();
-  recordRecentVisit(url);
+  recordHistory(url);
+  updateSecurityBadge(url);
+  updateBookmarkStar(url);
 
-  // Update protocol badge
-  const badge = document.getElementById("url-protocol-badge");
-  if (url.startsWith("atlas://")) {
-    badge.textContent = "atlas://";
-    badge.style.display = "inline-block";
-  } else if (url.startsWith("https://")) {
-    badge.textContent = "https://";
-    badge.style.display = "inline-block";
-  } else {
-    badge.style.display = "none";
+  // Status text update
+  const statusEl = document.getElementById("status-text");
+  if (statusEl) statusEl.textContent = `Lade ${url.slice(0, 40)}...`;
+
+  // Atlas Internal Pages
+  if (url === "atlas://home") {
+    renderSpeedDialGrid();
+    showScreen("home");
+    if (statusEl) statusEl.textContent = "Startseite bereit";
+    return;
   }
-
-  // Handle Atlas Internal Screens
-  if (url === "atlas://home") return showScreen("home");
-  if (url === "atlas://editor") return showScreen("editor");
+  if (url === "atlas://editor") {
+    showScreen("editor");
+    if (statusEl) statusEl.textContent = "Atlas Editor bereit";
+    return;
+  }
   if (url === "atlas://store") {
     renderStoreGrid();
-    return showScreen("store");
+    showScreen("store");
+    if (statusEl) statusEl.textContent = "Atlas Store bereit";
+    return;
   }
-  if (url === "atlas://docs") return showScreen("docs");
+  if (url === "atlas://docs") {
+    showScreen("docs");
+    if (statusEl) statusEl.textContent = "Dokumentation geladen";
+    return;
+  }
   if (url === "atlas://community") {
     loadCommunitySites();
-    return showScreen("community");
+    showScreen("community");
+    if (statusEl) statusEl.textContent = "Community Hub geladen";
+    return;
   }
-  if (url === "atlas://settings") return showScreen("settings");
+  if (url === "atlas://settings") {
+    showScreen("settings");
+    if (statusEl) statusEl.textContent = "Einstellungen";
+    return;
+  }
 
-  // Handle Atlas Sites (atlas://site/name)
+  // Atlas Site (atlas://site/:name)
   if (url.startsWith("atlas://site/")) {
     const siteName = url.replace("atlas://site/", "").trim();
     loadAtlasSite(siteName);
     return;
   }
 
-  // Real External Web View
+  // Real Web Browsing in WebView
   showScreen("webview");
   const iframe = document.getElementById("webview-frame");
   const display = document.getElementById("webview-url-display");
@@ -419,10 +382,30 @@ function navigate(targetUrl, push = true) {
   iframe.src = url;
   display.textContent = url;
 
-  // Setup blocked iframe fallback button
+  if (statusEl) statusEl.textContent = "Webseite geladen: " + url.replace(/^https?:\/\//, "");
+
+  // Check if iframe is blocked by X-Frame-Options
   document.getElementById("btn-blocked-open-external").onclick = () => {
     window.open(url, "_blank");
   };
+  document.getElementById("btn-blocked-back").onclick = () => {
+    navigate("atlas://home");
+  };
+}
+
+function updateSecurityBadge(url) {
+  const icon = document.getElementById("security-icon");
+  if (!icon) return;
+  if (url.startsWith("https://")) {
+    icon.textContent = "🔒";
+    icon.style.color = "#10b981";
+  } else if (url.startsWith("atlas://")) {
+    icon.textContent = "🌐";
+    icon.style.color = "#38bdf8";
+  } else {
+    icon.textContent = "⚠️";
+    icon.style.color = "#f59e0b";
+  }
 }
 
 function updateNavButtons() {
@@ -436,7 +419,6 @@ function updateNavButtons() {
   btnForward.disabled = tab.historyIndex >= tab.historyStack.length - 1;
 }
 
-// Nav Button Handlers
 btnBack.onclick = () => {
   const tab = getActiveTab();
   if (tab && tab.historyIndex > 0) {
@@ -457,7 +439,7 @@ btnReload.onclick = () => {
   const tab = getActiveTab();
   if (tab && tab.historyIndex >= 0) {
     navigate(tab.historyStack[tab.historyIndex], false);
-    showToast("Seite neu geladen", "info");
+    showToast("⟳ Seite neu geladen", "info");
   }
 };
 
@@ -474,17 +456,283 @@ urlInput.addEventListener("keydown", e => {
   }
 });
 
-// Quick bar actions
-document.getElementById("btn-quick-editor").onclick = () => navigate("atlas://editor");
-document.getElementById("btn-quick-store").onclick = () => navigate("atlas://store");
-document.getElementById("btn-quick-settings").onclick = () => navigate("atlas://settings");
+// Omnibox Autocomplete Suggestions
+urlInput.addEventListener("input", (e) => {
+  const query = e.target.value.trim();
+  if (!query || query.length < 1) {
+    suggestionsBox.style.display = "none";
+    return;
+  }
 
-// Home Quick Tiles
-document.querySelectorAll(".quick-tile").forEach(tile => {
-  tile.onclick = () => navigate(tile.dataset.target);
+  const matches = [
+    { type: "search", icon: "🔍", text: `${query} – Google Suche`, url: `https://www.google.com/search?q=${encodeURIComponent(query)}` },
+    { type: "search", icon: "🦆", text: `${query} – DuckDuckGo Suche`, url: `https://duckduckgo.com/?q=${encodeURIComponent(query)}` },
+    { type: "site", icon: "🌐", text: `atlas://editor – Atlas Editor öffnen`, url: "atlas://editor" },
+    { type: "site", icon: "🛒", text: `atlas://store – Atlas Store öffnen`, url: "atlas://store" },
+    { type: "site", icon: "🐍", text: `atlas://site/snake – Snake Arcade Game`, url: "atlas://site/snake" }
+  ].filter(item => item.text.toLowerCase().includes(query.toLowerCase()) || item.type === "search");
+
+  suggestionsBox.innerHTML = "";
+  matches.slice(0, 5).forEach(m => {
+    const item = document.createElement("div");
+    item.className = "suggestion-item";
+    item.innerHTML = `<span class="sug-icon">${m.icon}</span><span class="sug-text">${m.text}</span>`;
+    item.onclick = () => {
+      navigate(m.url);
+      suggestionsBox.style.display = "none";
+    };
+    suggestionsBox.appendChild(item);
+  });
+  suggestionsBox.style.display = "block";
 });
 
-// Home Search bar
+document.addEventListener("click", (e) => {
+  if (!urlInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+    suggestionsBox.style.display = "none";
+  }
+  // Close Chrome 3-Dots Menu if clicked outside
+  const menu = document.getElementById("chrome-dropdown-menu");
+  const menuBtn = document.getElementById("btn-chrome-menu");
+  if (menu && menuBtn && !menu.contains(e.target) && !menuBtn.contains(e.target)) {
+    menu.style.display = "none";
+  }
+});
+
+// ==================== BOOKMARKS MANAGEMENT ====================
+function updateBookmarkStar(url) {
+  const isBookmarked = settings.bookmarks.some(b => b.url === url);
+  btnBookmarkPage.classList.toggle("active", isBookmarked);
+}
+
+btnBookmarkPage.onclick = () => {
+  const tab = getActiveTab();
+  if (!tab) return;
+  const url = tab.url;
+  const title = tab.title || "Lesezeichen";
+
+  const idx = settings.bookmarks.findIndex(b => b.url === url);
+  if (idx >= 0) {
+    settings.bookmarks.splice(idx, 1);
+    btnBookmarkPage.classList.remove("active");
+    showToast("Lesezeichen entfernt", "info");
+  } else {
+    settings.bookmarks.push({ title, url, icon: tab.icon || "★" });
+    btnBookmarkPage.classList.add("active");
+    showToast("★ Lesezeichen hinzugefügt!", "success");
+  }
+  localStorage.setItem("atlas_bookmarks", JSON.stringify(settings.bookmarks));
+  renderBookmarksBar();
+};
+
+function renderBookmarksBar() {
+  const list = document.getElementById("bookmarks-list");
+  if (!list) return;
+  // Keep default buttons and append user bookmarks
+  document.querySelectorAll(".bookmark-item.user-bm").forEach(el => el.remove());
+
+  settings.bookmarks.forEach(bm => {
+    const btn = document.createElement("button");
+    btn.className = "bookmark-item user-bm";
+    btn.innerHTML = `<span class="bm-icon">${bm.icon || "★"}</span> ${bm.title}`;
+    btn.onclick = () => navigate(bm.url);
+    list.appendChild(btn);
+  });
+}
+renderBookmarksBar();
+
+document.querySelectorAll(".bookmark-item[data-url]").forEach(btn => {
+  btn.onclick = () => navigate(btn.dataset.url);
+});
+
+document.getElementById("btn-add-quick-bm").onclick = () => {
+  const title = prompt("Name des Lesezeichens:");
+  if (!title) return;
+  let url = prompt("Adresse (z. B. https://google.com):");
+  if (!url) return;
+  if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("atlas://")) {
+    url = "https://" + url;
+  }
+  settings.bookmarks.push({ title, url, icon: "★" });
+  localStorage.setItem("atlas_bookmarks", JSON.stringify(settings.bookmarks));
+  renderBookmarksBar();
+  showToast(`Lesezeichen "${title}" hinzugefügt!`, "success");
+};
+
+// ==================== HISTORY MANAGEMENT ====================
+function recordHistory(url) {
+  if (url === "atlas://home") return;
+  const item = { url, title: getTitleForUrl(url), time: new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }), date: new Date().toLocaleDateString("de-DE") };
+  settings.history.unshift(item);
+  if (settings.history.length > 100) settings.history = settings.history.slice(0, 100);
+  localStorage.setItem("atlas_history", JSON.stringify(settings.history));
+  renderHistoryDrawer();
+}
+
+function renderHistoryDrawer() {
+  const panel = document.getElementById("panel-history-content");
+  if (!panel) return;
+  panel.innerHTML = "";
+  if (settings.history.length === 0) {
+    panel.innerHTML = `<p style="color:var(--text-muted);font-size:0.85rem;">Noch kein Verlauf vorhanden.</p>`;
+    return;
+  }
+  settings.history.forEach((h, index) => {
+    const row = document.createElement("div");
+    row.className = "drawer-item";
+    row.innerHTML = `<div><strong>${h.title}</strong><br><small style="color:var(--text-muted);">${h.url.slice(0, 32)} • ${h.time}</small></div>`;
+    row.onclick = () => navigate(h.url);
+    panel.appendChild(row);
+  });
+}
+renderHistoryDrawer();
+
+document.getElementById("btn-clear-history-panel").onclick = () => {
+  settings.history = [];
+  localStorage.setItem("atlas_history", "[]");
+  renderHistoryDrawer();
+  showToast("Verlauf geleert", "info");
+};
+
+// ==================== OPERA SIDEBAR & FLYOUT PANELS ====================
+const flyoutPanels = {
+  ai: document.getElementById("panel-ai"),
+  bookmarks: document.getElementById("panel-bookmarks"),
+  history: document.getElementById("panel-history")
+};
+
+function togglePanel(name) {
+  const panel = flyoutPanels[name];
+  if (!panel) return;
+  const isVisible = panel.style.display === "flex";
+  // Close all first
+  Object.values(flyoutPanels).forEach(p => { if (p) p.style.display = "none"; });
+  if (!isVisible) {
+    panel.style.display = "flex";
+  }
+}
+
+document.querySelectorAll(".panel-close-btn").forEach(btn => {
+  btn.onclick = () => {
+    const pId = btn.dataset.close;
+    const p = document.getElementById(pId);
+    if (p) p.style.display = "none";
+  };
+});
+
+document.getElementById("sb-ai-toggle").onclick = () => togglePanel("ai");
+document.getElementById("btn-toggle-ai").onclick = () => togglePanel("ai");
+document.getElementById("sb-bookmarks-toggle").onclick = () => {
+  renderBookmarksDrawer();
+  togglePanel("bookmarks");
+};
+document.getElementById("sb-history-toggle").onclick = () => {
+  renderHistoryDrawer();
+  togglePanel("history");
+};
+
+function renderBookmarksDrawer() {
+  const panel = document.getElementById("panel-bookmarks-content");
+  if (!panel) return;
+  panel.innerHTML = "";
+  if (settings.bookmarks.length === 0) {
+    panel.innerHTML = `<p style="color:var(--text-muted);font-size:0.85rem;">Keine Lesezeichen gespeichert.</p>`;
+    return;
+  }
+  settings.bookmarks.forEach((bm, i) => {
+    const row = document.createElement("div");
+    row.className = "drawer-item";
+    row.innerHTML = `<div><span>${bm.icon || "★"}</span> <strong>${bm.title}</strong><br><small style="color:var(--text-muted);">${bm.url}</small></div><button style="background:none;border:none;color:#ff5555;cursor:pointer;">✕</button>`;
+    row.querySelector("div").onclick = () => navigate(bm.url);
+    row.querySelector("button").onclick = (e) => {
+      e.stopPropagation();
+      settings.bookmarks.splice(i, 1);
+      localStorage.setItem("atlas_bookmarks", JSON.stringify(settings.bookmarks));
+      renderBookmarksDrawer();
+      renderBookmarksBar();
+      updateBookmarkStar(urlInput.value);
+    };
+    panel.appendChild(row);
+  });
+}
+
+// Opera Sidebar Navigation Links
+document.querySelectorAll(".sidebar-btn[data-nav]").forEach(btn => {
+  btn.onclick = () => navigate(btn.dataset.nav);
+});
+
+// ==================== OPERA AI COPILOT ====================
+const aiInput = document.getElementById("ai-input");
+const btnSendAi = document.getElementById("btn-send-ai");
+const aiChatMessages = document.getElementById("ai-chat-messages");
+
+function sendAiMessage() {
+  const text = aiInput.value.trim();
+  if (!text) return;
+
+  // Add User msg
+  const userMsg = document.createElement("div");
+  userMsg.className = "ai-msg user";
+  userMsg.textContent = text;
+  aiChatMessages.appendChild(userMsg);
+  aiInput.value = "";
+  aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+
+  // Simulate AI Response
+  setTimeout(() => {
+    const botMsg = document.createElement("div");
+    botMsg.className = "ai-msg bot";
+
+    const query = text.toLowerCase();
+    if (query.includes("spiel") || query.includes("snake") || query.includes("code")) {
+      botMsg.innerHTML = `<strong>Atlas AI:</strong> Ich habe eine Idee für dich! Du kannst im <strong>Atlas Editor</strong> sofort Mini-Spiele oder interaktive Seiten bauen. Klicke unten, um eine Vorlage im Editor zu öffnen:<br><button class="primary-btn-sm" style="margin-top:8px;" onclick="navigate('atlas://editor')">Zum Editor wechseln</button>`;
+    } else if (query.includes("wer bist du") || query.includes("hallo") || query.includes("hi")) {
+      botMsg.innerHTML = `<strong>Atlas AI:</strong> Hallo! Ich bin dein integrierter Assistent im Atlas Browser – wie Opera Aria oder Edge Copilot. Frag mich gerne nach Code-Hilfe oder Internet-Tipps!`;
+    } else {
+      botMsg.innerHTML = `<strong>Atlas AI:</strong> Zu "<em>${text}</em>" empfehle ich dir eine Google-Suche im Browser:<br><button class="primary-btn-sm" style="margin-top:8px;" onclick="navigate('https://www.google.com/search?q=${encodeURIComponent(text)}')">Google Suche starten</button>`;
+    }
+
+    aiChatMessages.appendChild(botMsg);
+    aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+  }, 600);
+}
+
+if (btnSendAi) btnSendAi.onclick = sendAiMessage;
+if (aiInput) aiInput.addEventListener("keydown", e => { if (e.key === "Enter") sendAiMessage(); });
+
+// ==================== SPEED DIAL (OPERA STYLE) ====================
+function renderSpeedDialGrid() {
+  const grid = document.getElementById("speed-dial-grid");
+  if (!grid) return;
+  grid.innerHTML = "";
+
+  settings.speedDial.forEach((tile, index) => {
+    const el = document.createElement("div");
+    el.className = "speed-dial-tile";
+    el.innerHTML = `
+      <div class="sd-icon-box" style="background:${tile.color}22; border: 1px solid ${tile.color}; color:${tile.color};">${tile.icon}</div>
+      <div class="sd-title">${tile.title}</div>
+    `;
+    el.onclick = () => navigate(tile.url);
+    grid.appendChild(el);
+  });
+}
+renderSpeedDialGrid();
+
+document.getElementById("btn-speeddial-add").onclick = () => {
+  const title = prompt("Name für die Speed-Dial Kachel:");
+  if (!title) return;
+  let url = prompt("Webadresse (z. B. https://spiegel.de):");
+  if (!url) return;
+  if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("atlas://")) {
+    url = "https://" + url;
+  }
+  settings.speedDial.push({ title, url, icon: "🌐", color: "#3d7cff" });
+  localStorage.setItem("atlas_speed_dial", JSON.stringify(settings.speedDial));
+  renderSpeedDialGrid();
+  showToast(`Kachel "${title}" hinzugefügt!`, "success");
+};
+
+// Home quick search
 const homeUrlInput = document.getElementById("home-url-input");
 if (homeUrlInput) {
   homeUrlInput.addEventListener("keydown", e => {
@@ -495,7 +743,7 @@ if (homeUrlInput) {
 // Search engine selector badge on home
 const homeEngineBadge = document.getElementById("home-engine-badge");
 function updateEngineBadge() {
-  const engine = SEARCH_ENGINES[settings.searchEngine] || SEARCH_ENGINES.duckduckgo;
+  const engine = SEARCH_ENGINES[settings.searchEngine] || SEARCH_ENGINES.google;
   if (homeEngineBadge) homeEngineBadge.textContent = engine.name;
   const select = document.getElementById("setting-search-engine");
   if (select) select.value = settings.searchEngine;
@@ -514,45 +762,105 @@ if (homeEngineBadge) {
   };
 }
 
-const engineSelect = document.getElementById("setting-search-engine");
-if (engineSelect) {
-  engineSelect.onchange = (e) => {
-    settings.searchEngine = e.target.value;
-    localStorage.setItem("atlas_search_engine", e.target.value);
-    updateEngineBadge();
-    showToast("Suchmaschine gespeichert", "success");
-  };
-}
+// Quick tiles
+document.querySelectorAll(".quick-tile").forEach(tile => {
+  tile.onclick = () => navigate(tile.dataset.target);
+});
+
+// ==================== CHROME 3-DOTS MENU ====================
+const chromeMenuBtn = document.getElementById("btn-chrome-menu");
+const chromeMenu = document.getElementById("chrome-dropdown-menu");
+
+chromeMenuBtn.onclick = (e) => {
+  e.stopPropagation();
+  chromeMenu.style.display = chromeMenu.style.display === "block" ? "none" : "block";
+};
+
+document.getElementById("menu-new-tab").onclick = () => {
+  createTab("atlas://home");
+  chromeMenu.style.display = "none";
+};
+
+document.getElementById("menu-bookmarks").onclick = () => {
+  togglePanel("bookmarks");
+  chromeMenu.style.display = "none";
+};
+
+document.getElementById("menu-history").onclick = () => {
+  togglePanel("history");
+  chromeMenu.style.display = "none";
+};
+
+document.getElementById("menu-downloads").onclick = () => {
+  showToast("Keine aktiven Downloads", "info");
+  chromeMenu.style.display = "none";
+};
+
+document.getElementById("menu-settings").onclick = () => {
+  navigate("atlas://settings");
+  chromeMenu.style.display = "none";
+};
+
+document.getElementById("menu-docs").onclick = () => {
+  navigate("atlas://docs");
+  chromeMenu.style.display = "none";
+};
+
+// Zoom controls
+document.getElementById("btn-zoom-in").onclick = () => {
+  zoomLevel = Math.min(150, zoomLevel + 10);
+  document.getElementById("zoom-level").textContent = zoomLevel + "%";
+  document.getElementById("status-zoom-indicator").textContent = zoomLevel + "%";
+  document.getElementById("browser-content-viewport").style.transform = `scale(${zoomLevel / 100})`;
+  document.getElementById("browser-content-viewport").style.transformOrigin = "top left";
+};
+
+document.getElementById("btn-zoom-out").onclick = () => {
+  zoomLevel = Math.max(70, zoomLevel - 10);
+  document.getElementById("zoom-level").textContent = zoomLevel + "%";
+  document.getElementById("status-zoom-indicator").textContent = zoomLevel + "%";
+  document.getElementById("browser-content-viewport").style.transform = `scale(${zoomLevel / 100})`;
+  document.getElementById("browser-content-viewport").style.transformOrigin = "top left";
+};
+
+document.getElementById("btn-zoom-fullscreen").onclick = () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+};
+
+// Window Controls (Minimize / Maximize / Close)
+document.querySelector(".win-min").onclick = () => showToast("Browser minimiert (Simulation)", "info");
+document.querySelector(".win-max").onclick = () => {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+  else document.exitFullscreen().catch(() => {});
+};
+document.querySelector(".win-close").onclick = () => {
+  if (confirm("Möchtest du alle Tabs schließen?")) {
+    window.location.reload();
+  }
+};
+
+// Quick action buttons
+document.getElementById("btn-quick-editor").onclick = () => navigate("atlas://editor");
+document.getElementById("btn-quick-store").onclick = () => navigate("atlas://store");
 
 // ==================== SPEECH RECOGNITION ====================
 function setupSpeechRecognition(triggerBtn, targetInput) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    triggerBtn.onclick = () => {
-      showToast("Spracherkennung wird von diesem Browser nicht unterstützt.", "error");
-    };
-    return;
-  }
-
+  if (!SpeechRecognition) return;
   const recognition = new SpeechRecognition();
   recognition.lang = "de-DE";
   recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
-
-  let isListening = false;
 
   triggerBtn.onclick = () => {
-    if (isListening) {
-      recognition.stop();
-      return;
-    }
     try {
       recognition.start();
-      isListening = true;
       triggerBtn.classList.add("listening");
       showToast("🎙️ Zuhören... Bitte sprechen", "info");
-    } catch (err) {
-      isListening = false;
+    } catch (e) {
       triggerBtn.classList.remove("listening");
     }
   };
@@ -566,18 +874,45 @@ function setupSpeechRecognition(triggerBtn, targetInput) {
 
   recognition.onspeechend = () => {
     recognition.stop();
-    isListening = false;
     triggerBtn.classList.remove("listening");
-  };
-
-  recognition.onerror = (e) => {
-    isListening = false;
-    triggerBtn.classList.remove("listening");
-    showToast("Sprachfehler: " + (e.error || "Unbekannt"), "error");
   };
 }
 setupSpeechRecognition(micButton, urlInput);
 setupSpeechRecognition(homeMicButton, homeUrlInput);
+
+// ==================== KEYBOARD SHORTCUTS (CHROME STANDARD) ====================
+window.addEventListener("keydown", (e) => {
+  // Ctrl + T (New Tab)
+  if ((e.ctrlKey || e.metaKey) && (e.key === "t" || e.key === "T")) {
+    e.preventDefault();
+    createTab("atlas://home");
+  }
+  // Ctrl + W (Close Tab)
+  if ((e.ctrlKey || e.metaKey) && (e.key === "w" || e.key === "W")) {
+    e.preventDefault();
+    if (activeTabId) closeTab(activeTabId);
+  }
+  // Ctrl + H (History)
+  if ((e.ctrlKey || e.metaKey) && (e.key === "h" || e.key === "H")) {
+    e.preventDefault();
+    togglePanel("history");
+  }
+  // Ctrl + D (Bookmark)
+  if ((e.ctrlKey || e.metaKey) && (e.key === "d" || e.key === "D")) {
+    e.preventDefault();
+    btnBookmarkPage.click();
+  }
+  // Alt + Left (Back)
+  if (e.altKey && e.key === "ArrowLeft") {
+    e.preventDefault();
+    btnBack.click();
+  }
+  // Alt + Right (Forward)
+  if (e.altKey && e.key === "ArrowRight") {
+    e.preventDefault();
+    btnForward.click();
+  }
+});
 
 // ==================== ATLAS SITE LOADER ====================
 async function loadAtlasSite(siteName) {
@@ -586,7 +921,6 @@ async function loadAtlasSite(siteName) {
   const display = document.getElementById("webview-url-display");
   display.textContent = "atlas://site/" + siteName;
 
-  // 1. Check local cache first (instant load & offline support)
   const localCacheKey = "atlas_site_" + siteName;
   const localData = localStorage.getItem(localCacheKey);
   if (localData) {
@@ -597,566 +931,147 @@ async function loadAtlasSite(siteName) {
     } catch (e) {}
   }
 
-  // 2. Fetch from Atlas API
   try {
     const res = await fetch(ATLAS_API_BASE + "/api/site/" + siteName);
-    if (!res.ok) throw new Error("Nicht gefunden");
     const site = await res.json();
-
-    if (site.error) {
-      display.textContent = `Seite '${siteName}' existiert nicht.`;
-      iframe.srcdoc = `
-        <body style="font-family:sans-serif;background:#05070b;color:#e4e9ff;text-align:center;padding:3rem;">
-          <h2 style="color:#ff5555;">404 - Atlas Seite nicht gefunden</h2>
-          <p>Die Seite <code>atlas://site/${siteName}</code> existiert nicht.</p>
-          <button style="background:#3d7cff;color:#fff;border:none;padding:10px 20px;border-radius:20px;cursor:pointer;"
-                  onclick="parent.postMessage({action:'navigate',url:'atlas://editor'},'*')">
-            Im Editor neu anlegen
-          </button>
-        </body>`;
-      return;
-    }
-
-    // Cache locally
+    if (site.error) throw new Error("Nicht gefunden");
     localStorage.setItem(localCacheKey, JSON.stringify(site));
     renderSiteInIframe(iframe, site);
-
   } catch (err) {
-    display.textContent = `Fehler beim Laden von '${siteName}'`;
-    iframe.srcdoc = `
-      <body style="font-family:sans-serif;background:#05070b;color:#e4e9ff;text-align:center;padding:3rem;">
-        <h2 style="color:#ff5555;">Verbindungsfehler</h2>
-        <p>Die Seite konnte weder lokal noch über den Server <code>${ATLAS_API_BASE}</code> geladen werden.</p>
-      </body>`;
+    iframe.srcdoc = `<body style="background:#05070b;color:#e4e9ff;font-family:sans-serif;text-align:center;padding:3rem;"><h2>404 - Atlas Seite nicht gefunden</h2><p>Die Seite <code>atlas://site/${siteName}</code> existiert nicht.</p></body>`;
   }
 }
 
 function renderSiteInIframe(iframe, site) {
-  const doc = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>${site.css || ""}</style>
-      </head>
-      <body>
-        ${site.html || ""}
-        <script>
-          try {
-            ${site.js || ""}
-          } catch(err) {
-            console.error("Atlas Script Fehler:", err);
-          }
-        <\/script>
-      </body>
-    </html>
-  `;
-  iframe.srcdoc = doc;
+  iframe.srcdoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${site.css || ""}</style></head><body>${site.html || ""}<script>${site.js || ""}<\/script></body></html>`;
 }
 
-// Listen to postMessage from iframe
-window.addEventListener("message", (e) => {
-  if (e.data && e.data.action === "navigate") {
-    navigate(e.data.url);
-  }
-});
-
-// WebView Toolbar actions
+// WebView actions
 document.getElementById("btn-webview-reload").onclick = () => {
   const iframe = document.getElementById("webview-frame");
-  if (iframe.srcdoc) {
-    const src = iframe.srcdoc;
+  if (iframe.src) iframe.src = iframe.src;
+  else if (iframe.srcdoc) {
+    const c = iframe.srcdoc;
     iframe.srcdoc = "";
-    setTimeout(() => { iframe.srcdoc = src; }, 50);
-  } else if (iframe.src) {
-    iframe.src = iframe.src;
+    setTimeout(() => iframe.srcdoc = c, 50);
   }
   showToast("Vorschau neu geladen", "info");
 };
 
 document.getElementById("btn-webview-copy").onclick = () => {
-  const url = document.getElementById("webview-url-display").textContent;
-  navigator.clipboard.writeText(url).then(() => {
-    showToast("URL in Zwischenablage kopiert!", "success");
-  });
+  navigator.clipboard.writeText(urlInput.value).then(() => showToast("URL kopiert!", "success"));
 };
 
 document.getElementById("btn-webview-external").onclick = () => {
   const iframe = document.getElementById("webview-frame");
-  if (iframe.src && !iframe.src.startsWith("about:") && !iframe.srcdoc) {
+  if (iframe.src && !iframe.src.startsWith("about:")) {
     window.open(iframe.src, "_blank");
   } else {
-    showToast("Atlas-interne Seiten laufen direkt im Browser", "info");
+    window.open(urlInput.value, "_blank");
   }
 };
 
 // ==================== EDITOR ENGINE ====================
-const editorTabs = document.querySelectorAll(".editor-tab");
-const editorPanels = document.querySelectorAll(".editor-panel");
-
-editorTabs.forEach(tab => {
-  tab.onclick = () => {
-    editorTabs.forEach(t => t.classList.remove("active"));
-    editorPanels.forEach(p => p.classList.remove("active"));
-    tab.classList.add("active");
-    document.getElementById("editor-" + tab.dataset.tab).classList.add("active");
-  };
-});
-
 const editorHTML = document.getElementById("editor-html");
 const editorCSS = document.getElementById("editor-css");
 const editorJS = document.getElementById("editor-js");
 const previewFrame = document.getElementById("editor-preview");
 const consoleOutput = document.getElementById("editor-console-output");
 
-function runEditorCode() {
-  consoleOutput.innerHTML = "";
-  const code = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="UTF-8">
-        <style>${editorCSS.value}</style>
-      </head>
-      <body>
-        ${editorHTML.value}
-        <script>
-          // Console interceptor
-          ['log', 'warn', 'error'].forEach(type => {
-            const original = console[type];
-            console[type] = function(...args) {
-              original.apply(console, args);
-              window.parent.postMessage({
-                type: 'atlas-console',
-                level: type,
-                msg: args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')
-              }, '*');
-            };
-          });
+document.querySelectorAll(".editor-tab").forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll(".editor-tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".editor-panel").forEach(p => p.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("editor-" + tab.dataset.tab).classList.add("active");
+  };
+});
 
-          try {
-            ${editorJS.value}
-          } catch(err) {
-            console.error(err.message);
-          }
-        <\/script>
-      </body>
-    </html>
-  `;
-  previewFrame.srcdoc = code;
+function runEditorCode() {
+  if (!previewFrame) return;
+  consoleOutput.innerHTML = "";
+  previewFrame.srcdoc = `<!DOCTYPE html><html><head><style>${editorCSS.value}</style></head><body>${editorHTML.value}<script>['log','warn','error'].forEach(t=>{const o=console[t];console[t]=function(...a){o.apply(console,a);window.parent.postMessage({type:'console',level:t,msg:a.join(' ')},'*');};});try{${editorJS.value}}catch(e){console.error(e.message);}<\/script></body></html>`;
 }
 
 document.getElementById("btn-run").onclick = runEditorCode;
 
-// Run shortcut (Ctrl+Enter)
-window.addEventListener("keydown", (e) => {
-  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-    runEditorCode();
-    showToast("▶ Vorschau aktualisiert", "info");
-  }
-  if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-    e.preventDefault();
-    saveProjectLocally();
-  }
-});
-
-// Console logger listener
 window.addEventListener("message", (e) => {
-  if (e.data && e.data.type === "atlas-console") {
-    const entry = document.createElement("div");
-    entry.className = `console-entry ${e.data.level}`;
-    entry.textContent = `[${e.data.level}] ${e.data.msg}`;
-    consoleOutput.appendChild(entry);
-    consoleOutput.scrollTop = consoleOutput.scrollHeight;
+  if (e.data && e.data.type === "console") {
+    const row = document.createElement("div");
+    row.className = `console-entry ${e.data.level}`;
+    row.textContent = `[${e.data.level}] ${e.data.msg}`;
+    consoleOutput.appendChild(row);
   }
 });
 
-document.getElementById("btn-clear-console").onclick = () => {
-  consoleOutput.innerHTML = "";
+document.getElementById("btn-clear-console").onclick = () => consoleOutput.innerHTML = "";
+
+// Save & Export
+document.getElementById("btn-save").onclick = () => {
+  const name = document.getElementById("project-title-input").value.trim() || "projekt";
+  localStorage.setItem("atlas_site_" + name, JSON.stringify({ name, html: editorHTML.value, css: editorCSS.value, js: editorJS.value }));
+  showToast(`💾 Projekt '${name}' gespeichert!`, "success");
 };
 
-// Fullscreen preview button
-document.getElementById("btn-fullscreen-preview").onclick = () => {
-  const site = {
-    html: editorHTML.value,
-    css: editorCSS.value,
-    js: editorJS.value
-  };
-  showScreen("webview");
-  const iframe = document.getElementById("webview-frame");
-  renderSiteInIframe(iframe, site);
-  document.getElementById("webview-url-display").textContent = "atlas://editor/fullscreen";
-};
-
-// Template Selector
-const templateSelect = document.getElementById("template-select");
-const TEMPLATES = {
-  starter: {
-    title: "Starter-Projekt",
-    html: `<h1>Hallo Atlas Explorer! 🚀</h1>\n<p>Bearbeite diesen Text im Editor.</p>\n<button id="btn">Klick mich</button>`,
-    css: `body { font-family: system-ui; background: #0b0f19; color: #5fd3ff; text-align: center; padding: 3rem; }\nbutton { background: #3d7cff; color: #fff; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; }`,
-    js: `document.getElementById("btn").onclick = () => alert("Super gemacht!");`
-  },
-  card: {
-    title: "Cyberpunk-Karte",
-    html: `<div class="card">\n  <div class="tag">CYBER // 2077</div>\n  <h2>Atlas Protocol</h2>\n  <p>Dezentrales Web-Betriebssystem für Entwickler.</p>\n  <button class="neon-btn">ENTER CYBERSPACE</button>\n</div>`,
-    css: `body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #050014; font-family: sans-serif; }\n.card { background: #0e0524; border: 1px solid #d946ef; border-radius: 16px; padding: 2rem; color: #fff; box-shadow: 0 0 30px rgba(217,70,239,0.3); text-align: center; }\n.tag { color: #38bdf8; font-weight: bold; font-size: 0.8rem; margin-bottom: 0.5rem; }\n.neon-btn { background: #d946ef; border: none; color: #fff; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 0 15px #d946ef; }`,
-    js: `document.querySelector(".neon-btn").onclick = () => {\n  document.body.style.background = '#140033';\n  console.log("Cyber-Modus aktiviert!");\n};`
-  },
-  counter: {
-    title: "Zähler-App",
-    html: `<div class="counter-box">\n  <h1>Zähler: <span id="num">0</span></h1>\n  <div class="btns">\n    <button id="sub">-</button>\n    <button id="add">+</button>\n    <button id="res">Reset</button>\n  </div>\n</div>`,
-    css: `body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #111827; color: #fff; font-family: sans-serif; }\n.counter-box { text-align: center; background: #1f2937; padding: 2rem; border-radius: 12px; border: 1px solid #374151; }\nbutton { margin: 5px; padding: 10px 20px; font-size: 1.2rem; cursor: pointer; border-radius: 6px; border: none; background: #3b82f6; color: #fff; }`,
-    js: `let count = 0;\nconst num = document.getElementById("num");\ndocument.getElementById("add").onclick = () => { count++; num.textContent = count; };\ndocument.getElementById("sub").onclick = () => { count--; num.textContent = count; };\ndocument.getElementById("res").onclick = () => { count = 0; num.textContent = count; };`
-  },
-  canvas: {
-    title: "Zeichenbrett",
-    html: `<canvas id="c" width="400" height="400"></canvas><br><button id="clear">Clear</button>`,
-    css: `body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0f172a; }\ncanvas { background: #1e293b; border-radius: 8px; cursor: crosshair; }\nbutton { margin-top: 10px; padding: 8px 16px; background: #ef4444; color: #fff; border: none; border-radius: 6px; cursor: pointer; }`,
-    js: `const c=document.getElementById("c"),ctx=c.getContext("2d");let draw=false;c.onmousedown=()=>draw=true;window.onmouseup=()=>draw=false;c.onmousemove=e=>{if(!draw)return;const r=c.getBoundingClientRect();ctx.fillStyle="#38bdf8";ctx.beginPath();ctx.arc(e.clientX-r.left,e.clientY-r.top,4,0,Math.PI*2);ctx.fill();};document.getElementById("clear").onclick=()=>ctx.clearRect(0,0,c.width,c.height);`
-  },
-  blank: {
-    title: "Leere Seite",
-    html: `<!DOCTYPE html>\n<html>\n  <head><title>Neu</title></head>\n  <body>\n    <h1>Neue Seite</h1>\n  </body>\n</html>`,
-    css: `body { background: #05070b; color: #e4e9ff; font-family: sans-serif; padding: 2rem; }`,
-    js: `console.log("Atlas bereit.");`
-  }
-};
-
-templateSelect.onchange = (e) => {
-  const t = TEMPLATES[e.target.value];
-  if (!t) return;
-  if (confirm(`Vorlage "${t.title}" laden? Aktueller Code wird ersetzt.`)) {
-    editorHTML.value = t.html;
-    editorCSS.value = t.css;
-    editorJS.value = t.js;
-    document.getElementById("project-title-input").value = t.title.toLowerCase().replace(/[^a-z0-9]/g, "-");
-    runEditorCode();
-    showToast(`Vorlage "${t.title}" geladen`, "success");
-  }
-};
-
-// New project
-document.getElementById("btn-new-project").onclick = () => {
-  if (confirm("Neues Projekt beginnen?")) {
-    const t = TEMPLATES.starter;
-    editorHTML.value = t.html;
-    editorCSS.value = t.css;
-    editorJS.value = t.js;
-    document.getElementById("project-title-input").value = "neues-projekt";
-    runEditorCode();
-    showToast("Neues Projekt erstellt", "info");
-  }
-};
-
-// Save Project locally
-function saveProjectLocally() {
-  const name = document.getElementById("project-title-input").value.trim() || "atlas-projekt";
-  const cleanName = name.toLowerCase().replace(/[^a-z0-9_-]/g, "-");
-  const siteData = {
-    name: cleanName,
-    title: name,
-    html: editorHTML.value,
-    css: editorCSS.value,
-    js: editorJS.value,
-    author: "Du",
-    date: new Date().toISOString()
-  };
-
-  localStorage.setItem("atlas_site_" + cleanName, JSON.stringify(siteData));
-  showToast(`💾 Projekt '${name}' lokal gespeichert!`, "success");
-}
-document.getElementById("btn-save").onclick = saveProjectLocally;
-
-// Export .html file download
 document.getElementById("btn-export-html").onclick = () => {
-  const name = document.getElementById("project-title-input").value.trim() || "atlas-page";
-  const fullHtml = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>${name}</title>
-  <style>${editorCSS.value}</style>
-</head>
-<body>
-  ${editorHTML.value}
-  <script>${editorJS.value}<\/script>
-</body>
-</html>`;
-
-  const blob = new Blob([fullHtml], { type: "text/html" });
+  const name = document.getElementById("project-title-input").value.trim() || "atlas";
+  const blob = new Blob([`<!DOCTYPE html><html><head><style>${editorCSS.value}</style></head><body>${editorHTML.value}<script>${editorJS.value}<\/script></body></html>`], { type: "text/html" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = `${name}.html`;
   a.click();
-  showToast("Download gestartet: " + name + ".html", "success");
+  showToast("Download gestartet", "success");
 };
 
-// Publish Project
+// Publish
 document.getElementById("btn-publish").onclick = async () => {
-  const rawName = document.getElementById("project-title-input").value.trim();
-  const namePrompt = prompt("Name für deine Atlas-Seite (z. B. 'mein-spiel'):", rawName || "meine-seite");
-  if (!namePrompt) return;
+  const name = prompt("Name für die Seite:", "meine-seite");
+  if (!name) return;
+  const cleanName = name.toLowerCase().replace(/[^a-z0-9_-]/g, "-");
+  const payload = { name: cleanName, html: editorHTML.value, css: editorCSS.value, js: editorJS.value };
 
-  const cleanName = namePrompt.toLowerCase().replace(/[^a-z0-9_-]/g, "-");
-  if (!cleanName) {
-    showToast("Ungültiger Name", "error");
-    return;
-  }
-
-  const payload = {
-    name: cleanName,
-    html: editorHTML.value,
-    css: editorCSS.value,
-    js: editorJS.value,
-    author: "Atlas Explorer"
-  };
-
-  // Always save locally so it works immediately
   localStorage.setItem("atlas_site_" + cleanName, JSON.stringify(payload));
-
-  showToast("Veröffentliche auf Server...", "info");
-
   try {
-    const res = await fetch(ATLAS_API_BASE + "/api/publish", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
+    const res = await fetch(ATLAS_API_BASE + "/api/publish", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     const data = await res.json();
-    if (data.success) {
-      showToast(`🎉 Online veröffentlicht unter: ${data.url}`, "success");
-      navigate(data.url);
-    } else {
-      showToast("Lokal gespeichert unter: atlas://site/" + cleanName, "info");
-      navigate("atlas://site/" + cleanName);
-    }
-  } catch (err) {
-    showToast("Server offline – lokal gesichert unter: atlas://site/" + cleanName, "info");
-    navigate("atlas://site/" + cleanName);
+    showToast(`🎉 Veröffentlicht unter: atlas://site/${cleanName}`, "success");
+  } catch (e) {
+    showToast(`Lokal gesichert unter: atlas://site/${cleanName}`, "info");
   }
+  navigate(`atlas://site/${cleanName}`);
 };
 
 // ==================== STORE ENGINE ====================
-function renderStoreGrid(filter = "all", searchQuery = "") {
+function renderStoreGrid() {
   const grid = document.getElementById("store-grid");
   if (!grid) return;
   grid.innerHTML = "";
-
-  const filtered = BUILTIN_APPS.filter(app => {
-    const matchesFilter = filter === "all" || app.category === filter;
-    const matchesSearch = !searchQuery || app.title.toLowerCase().includes(searchQuery.toLowerCase()) || app.desc.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
-
-  filtered.forEach(app => {
+  BUILTIN_APPS.forEach(app => {
     const card = document.createElement("div");
     card.className = "app-card";
     card.innerHTML = `
-      <div class="app-card-top">
-        <div class="app-icon">${app.icon}</div>
-        <div class="app-info">
-          <h3>${app.title}</h3>
-          <span class="app-tag">${app.tag}</span>
-        </div>
-      </div>
+      <div class="app-card-top"><div class="app-icon">${app.icon}</div><div class="app-info"><h3>${app.title}</h3><span class="app-tag">${app.tag}</span></div></div>
       <p class="app-desc">${app.desc}</p>
       <div class="app-card-actions">
-        <button class="primary-btn btn-open-app" data-id="${app.id}">Öffnen</button>
-        <button class="ghost-btn btn-fork-app" data-id="${app.id}">Im Editor</button>
+        <button class="primary-btn" onclick="navigate('atlas://site/${app.id}')">Öffnen</button>
+        <button class="ghost-btn" onclick="forkApp('${app.id}')">Im Editor</button>
       </div>
     `;
-
-    card.querySelector(".btn-open-app").onclick = () => {
-      navigate("atlas://site/" + app.id);
-    };
-
-    card.querySelector(".btn-fork-app").onclick = () => {
-      editorHTML.value = app.html;
-      editorCSS.value = app.css;
-      editorJS.value = app.js;
-      document.getElementById("project-title-input").value = app.id;
-      navigate("atlas://editor");
-      runEditorCode();
-      showToast(`'${app.title}' in den Editor geladen!`, "success");
-    };
-
     grid.appendChild(card);
   });
 }
 
-// Store Filters
-document.querySelectorAll(".store-filter-btn").forEach(btn => {
-  btn.onclick = () => {
-    document.querySelectorAll(".store-filter-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    const query = document.getElementById("store-search-input").value;
-    renderStoreGrid(btn.dataset.filter, query);
-  };
-});
-
-const storeSearchInput = document.getElementById("store-search-input");
-if (storeSearchInput) {
-  storeSearchInput.oninput = (e) => {
-    const activeFilterBtn = document.querySelector(".store-filter-btn.active");
-    const filter = activeFilterBtn ? activeFilterBtn.dataset.filter : "all";
-    renderStoreGrid(filter, e.target.value);
-  };
+function forkApp(appId) {
+  const app = BUILTIN_APPS.find(a => a.id === appId);
+  if (!app) return;
+  editorHTML.value = app.html;
+  editorCSS.value = app.css;
+  editorJS.value = app.js;
+  document.getElementById("project-title-input").value = app.id;
+  navigate("atlas://editor");
+  runEditorCode();
+  showToast(`'${app.title}' in Editor geladen!`, "success");
 }
-
-// ==================== COMMUNITY ENGINE ====================
-async function loadCommunitySites() {
-  const grid = document.getElementById("community-grid");
-  if (!grid) return;
-  grid.innerHTML = `<div style="color:var(--text-soft);padding:1rem;">Lade Community-Projekte...</div>`;
-
-  // Collect local sites from localStorage
-  const localSites = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key.startsWith("atlas_site_")) {
-      try {
-        const item = JSON.parse(localStorage.getItem(key));
-        localSites.push(item);
-      } catch (e) {}
-    }
-  }
-
-  let serverSites = [];
-  try {
-    const res = await fetch(ATLAS_API_BASE + "/api/sites");
-    if (res.ok) {
-      const data = await res.json();
-      serverSites = data.sites || [];
-    }
-  } catch (err) {}
-
-  // Merge unique sites
-  const allMap = new Map();
-  localSites.forEach(s => allMap.set(s.name, s));
-  serverSites.forEach(s => {
-    if (!allMap.has(s.name)) allMap.set(s.name, s);
-  });
-
-  const merged = Array.from(allMap.values());
-
-  grid.innerHTML = "";
-  if (merged.length === 0) {
-    grid.innerHTML = `<p style="color:var(--text-soft);padding:1rem;">Noch keine Projekte veröffentlicht. Erstelle das erste!</p>`;
-    return;
-  }
-
-  merged.forEach(site => {
-    const card = document.createElement("div");
-    card.className = "app-card";
-    const dateFormatted = site.date ? new Date(site.date).toLocaleDateString("de-DE") : "Kürzlich";
-    card.innerHTML = `
-      <div class="app-card-top">
-        <div class="app-icon">🌐</div>
-        <div class="app-info">
-          <h3>${site.title || site.name}</h3>
-          <span class="app-tag">von ${site.author || "Explorer"}</span>
-        </div>
-      </div>
-      <p class="app-desc">Atlas-Adresse: <code>atlas://site/${site.name}</code><br><small style="color:var(--text-muted);">Erstellt am: ${dateFormatted}</small></p>
-      <div class="app-card-actions">
-        <button class="primary-btn btn-comm-launch">Starten ↗</button>
-        <button class="ghost-btn btn-comm-fork">Im Editor bearbeiten</button>
-      </div>
-    `;
-
-    card.querySelector(".btn-comm-launch").onclick = () => {
-      navigate("atlas://site/" + site.name);
-    };
-
-    card.querySelector(".btn-comm-fork").onclick = async () => {
-      // If we don't have code locally, fetch it
-      if (!site.html) {
-        try {
-          const res = await fetch(ATLAS_API_BASE + "/api/site/" + site.name);
-          const fullSite = await res.json();
-          site.html = fullSite.html;
-          site.css = fullSite.css;
-          site.js = fullSite.js;
-        } catch (e) {}
-      }
-      editorHTML.value = site.html || "<h1>Kein HTML</h1>";
-      editorCSS.value = site.css || "";
-      editorJS.value = site.js || "";
-      document.getElementById("project-title-input").value = site.name;
-      navigate("atlas://editor");
-      runEditorCode();
-      showToast(`'${site.name}' in den Editor geladen!`, "success");
-    };
-
-    grid.appendChild(card);
-  });
-}
-
-document.getElementById("btn-community-refresh").onclick = loadCommunitySites;
-document.getElementById("btn-community-create").onclick = () => navigate("atlas://editor");
-
-// ==================== SETTINGS & BACKUP ====================
-// Export all sites as JSON
-document.getElementById("btn-export-all-sites").onclick = () => {
-  const backup = {};
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key.startsWith("atlas_site_") || key.startsWith("atlas_")) {
-      backup[key] = localStorage.getItem(key);
-    }
-  }
-  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `atlas-backup-${Date.now()}.json`;
-  a.click();
-  showToast("Export erfolgreich heruntergeladen!", "success");
-};
-
-// Import sites from JSON
-const importFileInput = document.getElementById("import-sites-file");
-document.getElementById("btn-import-sites-trigger").onclick = () => importFileInput.click();
-
-importFileInput.onchange = (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (evt) => {
-    try {
-      const data = JSON.parse(evt.target.result);
-      let count = 0;
-      for (const k in data) {
-        localStorage.setItem(k, data[k]);
-        count++;
-      }
-      showToast(`${count} Atlas-Einträge erfolgreich importiert!`, "success");
-      loadCommunitySites();
-      renderRecentVisits();
-    } catch (err) {
-      showToast("Fehlerhafte JSON-Datei", "error");
-    }
-  };
-  reader.readAsText(file);
-};
-
-// Clear history
-document.getElementById("btn-clear-history").onclick = () => {
-  settings.recentVisits = [];
-  localStorage.setItem("atlas_recent_visits", "[]");
-  renderRecentVisits();
-  showToast("Browser-Verlauf geleert", "info");
-};
-
-// Reset Atlas
-document.getElementById("btn-reset-atlas").onclick = () => {
-  if (confirm("Wirklich den gesamten lokalen Atlas-Speicher zurücksetzen? Alle ungespeicherten Daten gehen verloren.")) {
-    localStorage.clear();
-    location.reload();
-  }
-};
 
 // ==================== INITIAL BOOTSTRAP ====================
 createTab("atlas://home");
